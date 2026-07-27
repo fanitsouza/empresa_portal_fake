@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Portal Fake - RPA Cadastros</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="brand">
+      <div class="logo">PF</div>
+      <div>
+        <div class="title">Portal Fake</div>
+        <div class="subtitle">Cadastros (estatico) para pratica de RPA</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <div class="row">
+        <h2>Cadastros</h2>
+        <div class="toolbar">
+          <button id="btnNovo" class="btn" type="button">Novo cadastro</button>
+          <button id="btnExportCsv" class="btn secondary" type="button">Exportar CSV</button>
+          <button id="btnExportJson" class="btn secondary" type="button">Exportar JSON</button>
+          <label class="filebtn btn secondary" for="fileImportJson">Importar JSON</label>
+          <input id="fileImportJson" type="file" accept="application/json" hidden />
+          <button id="btnClearAll" class="btn danger" type="button" title="Apaga tudo (zera a base)">Zerar base</button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <label for="q">Busca rapida</label>
+          <input id="q" type="text" placeholder="Nome, sobrenome, CPF ou e-mail..." autocomplete="off" />
+          <div class="hint">Dica: digite parte do nome ou o CPF completo.</div>
+        </div>
+
+        <div>
+          <label for="status">Filtro de status</label>
+          <select id="status">
+            <option value="">Todos</option>
+            <option value="ATIVO">ATIVO</option>
+            <option value="PENDENTE">PENDENTE</option>
+            <option value="BLOQUEADO">BLOQUEADO</option>
+          </select>
+          <div class="hint">Simula regra de negocio.</div>
+        </div>
+
+        <div class="actions">
+          <button id="btnLimpar" class="btn secondary" type="button">Limpar</button>
+          <button id="btnBuscar" class="btn" type="button">Buscar</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="row">
+        <h2>Resultados</h2>
+        <div class="muted" id="count">0 encontrados</div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Nome completo</th>
+              <th>CPF</th>
+              <th>E-mail</th>
+              <th>Status</th>
+              <th style="text-align:right;">Acoes</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <div id="empty" class="empty">Nenhum cadastro encontrado.</div>
+    </section>
+
+    <section class="card" id="detailsCard" hidden>
+      <div class="row">
+        <h2>Detalhes do cadastro</h2>
+        <button id="btnFecharDetalhes" class="btn secondary" type="button">Fechar</button>
+      </div>
+      <div class="details" id="details"></div>
+    </section>
+
+    <footer class="footer">
+      <div class="muted">
+        Portal 100% estatico. Abra <code>index.html</code> no navegador.
+        Dados ficam no <code>localStorage</code>.
+      </div>
+    </footer>
+  </main>
+
+  <!-- Modal Cadastro -->
+  <div id="modal" class="modal" hidden aria-hidden="true">
+    <div class="modal-backdrop" id="modalBackdrop"></div>
+
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="row">
+        <h2 id="modalTitle">Novo cadastro</h2>
+        <button class="iconbtn" id="btnModalClose" type="button" title="Fechar (Esc)">×</button>
+      </div>
+
+      <form id="form" autocomplete="off">
+        <div class="details formgrid">
+          <div class="kv">
+            <div class="k">Nome</div>
+            <input id="f_nome" required placeholder="Ex.: Ana" />
+          </div>
+          <div class="kv">
+            <div class="k">Sobrenome</div>
+            <input id="f_sobrenome" required placeholder="Ex.: Silva" />
+          </div>
+
+          <div class="kv">
+            <div class="k">CPF (11 numeros)</div>
+            <input id="f_cpf" required placeholder="Ex.: 11122233344" inputmode="numeric" maxlength="11" />
+          </div>
+          <div class="kv">
+            <div class="k">E-mail</div>
+            <input id="f_email" type="email" required placeholder="Ex.: ana@exemplo.com" />
+          </div>
+
+          <div class="kv">
+            <div class="k">Telefone</div>
+            <input id="f_telefone" placeholder="Ex.: (92) 99999-0000" />
+          </div>
+          <div class="kv">
+            <div class="k">Nascimento</div>
+            <input id="f_nascimento" type="date" />
+          </div>
+
+          <div class="kv">
+            <div class="k">Status</div>
+            <select id="f_status">
+              <option value="ATIVO">ATIVO</option>
+              <option value="PENDENTE">PENDENTE</option>
+              <option value="BLOQUEADO">BLOQUEADO</option>
+            </select>
+          </div>
+          <div class="kv">
+            <div class="k">Observacao</div>
+            <input id="f_observacao" placeholder="Ex.: aguardando confirmacao" />
+          </div>
+
+          <div class="kv" style="grid-column: 1 / -1;">
+            <div class="k">Endereco</div>
+            <input id="f_endereco" placeholder="Ex.: Rua A, 100 - Centro - Manaus/AM" />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <div class="muted" id="formMsg"></div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn secondary" id="btnCancelar" type="button">Cancelar</button>
+            <button class="btn" id="btnSalvar" type="submit">Salvar</button>
+          </div>
+        </div>
+
+        <input id="f_id" type="hidden" />
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

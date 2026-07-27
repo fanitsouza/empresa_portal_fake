@@ -1,0 +1,21 @@
+id_solicitacao,nome,sobrenome,cpf,email,telefone,nascimento,status,endereco,observacao,solicitante,prioridade,canal
+1,Ana,Silva,10000012482,ana.silva.1@exemplo.com,(92) 99001-1001,1988-01-01,ATIVO,"Rua A, 100 - Bairro Centro - Manaus/AM",Cadastro OK.,Equipe A,BAIXA,email
+2,Bruno,Rocha,10000012619,bruno.rocha.2@exemplo.com,(92) 99002-1002,1989-01-17,PENDENTE,"Rua B, 107 - Bairro Aleixo - Manaus/AM",Aguardando confirmacao.,Equipe B,MEDIA,whatsapp
+3,Carla,Almeida,10000012756,carla.almeida.3@exemplo.com,(92) 99003-1003,1990-02-03,BLOQUEADO,"Rua C, 114 - Bairro Flores - Manaus/AM",Revisar documento.,Equipe C,ALTA,presencial
+4,Diego,Gomes,10000012893,diego.gomes.4@exemplo.com,(92) 99004-1004,1991-02-20,ATIVO,"Rua D, 121 - Bairro Parque 10 - Manaus/AM",Contato pendente.,Equipe D,BAIXA,email
+5,Evelyn,Pereira,10000013030,evelyn.pereira.5@exemplo.com,(92) 99005-1005,1992-03-08,PENDENTE,"Rua E, 128 - Bairro Adrianopolis - Manaus/AM",Bloqueio temporario.,Equipe E,MEDIA,whatsapp
+6,Felipe,Carvalho,10000013167,felipe.carvalho.6@exemplo.com,(92) 99006-1006,1993-03-25,BLOQUEADO,"Rua F, 135 - Bairro Centro - Manaus/AM",Cadastro OK.,Equipe A,ALTA,presencial
+7,Gabi,Nascimento,10000013304,gabi.nascimento.7@exemplo.com,(92) 99007-1007,1994-04-11,ATIVO,"Rua G, 142 - Bairro Aleixo - Manaus/AM",Aguardando confirmacao.,Equipe B,BAIXA,email
+8,Hugo,Lima,10000013441,hugo.lima.8@exemplo.com,(92) 99008-1008,1995-04-28,PENDENTE,"Rua H, 149 - Bairro Flores - Manaus/AM",Revisar documento.,Equipe C,MEDIA,whatsapp
+9,Iara,Mendes,10000013578,iara.mendes.9@exemplo.com,(92) 99009-1009,1996-05-14,BLOQUEADO,"Rua I, 156 - Bairro Parque 10 - Manaus/AM",Contato pendente.,Equipe D,ALTA,presencial
+10,Joao,Costa,10000013715,joao.costa.10@exemplo.com,(92) 99010-1010,1997-05-31,ATIVO,"Rua J, 163 - Bairro Adrianopolis - Manaus/AM",Bloqueio temporario.,Equipe E,BAIXA,email
+11,Katia,Ribeiro,10000013852,katia.ribeiro.11@exemplo.com,(92) 99011-1011,1998-06-17,PENDENTE,"Rua K, 170 - Bairro Centro - Manaus/AM",Cadastro OK.,Equipe A,MEDIA,whatsapp
+12,Lucas,Santos,10000013989,lucas.santos.12@exemplo.com,(92) 99012-1012,1999-07-04,BLOQUEADO,"Rua L, 177 - Bairro Aleixo - Manaus/AM",Aguardando confirmacao.,Equipe B,ALTA,presencial
+13,Marina,Martins,10000014126,marina.martins.13@exemplo.com,(92) 99013-1013,2000-01-02,ATIVO,"Rua M, 184 - Bairro Flores - Manaus/AM",Revisar documento.,Equipe C,BAIXA,email
+14,Nando,Correia,10000014263,nando.correia.14@exemplo.com,(92) 99014-1014,2001-01-18,PENDENTE,"Rua N, 191 - Bairro Parque 10 - Manaus/AM",Contato pendente.,Equipe D,MEDIA,whatsapp
+15,Olivia,Souza,10000014400,olivia.souza.15@exemplo.com,(92) 99015-1015,2002-02-04,BLOQUEADO,"Rua O, 198 - Bairro Adrianopolis - Manaus/AM",Bloqueio temporario.,Equipe E,ALTA,presencial
+16,Paulo,Barbosa,10000014537,paulo.barbosa.16@exemplo.com,(92) 99016-1016,2003-02-21,ATIVO,"Rua P, 205 - Bairro Centro - Manaus/AM",Cadastro OK.,Equipe A,BAIXA,email
+17,Quezia,Ferreira,10000014674,quezia.ferreira.17@exemplo.com,(92) 99017-1017,2004-03-09,PENDENTE,"Rua Q, 212 - Bairro Aleixo - Manaus/AM",Aguardando confirmacao.,Equipe B,MEDIA,whatsapp
+18,Rafael,Araujo,10000014811,rafael.araujo.18@exemplo.com,(92) 99018-1018,2005-03-26,BLOQUEADO,"Rua R, 219 - Bairro Flores - Manaus/AM",Revisar documento.,Equipe C,ALTA,presencial
+19,Sara,Oliveira,10000014948,sara.oliveira.19@exemplo.com,(92) 99019-1019,2006-04-12,ATIVO,"Rua S, 226 - Bairro Parque 10 - Manaus/AM",Contato pendente.,Equipe D,BAIXA,email
+20,Tiago,Teixeira,10000015085,tiago.teixeira.20@exemplo.com,(92) 99020-1020,2007-04-29,PENDENTE,"Rua T, 233 - Bairro Adrianopolis - Manaus/AM",Bloqueio temporario.,Equipe E,MEDIA,whatsapp
