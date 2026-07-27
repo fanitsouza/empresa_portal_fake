@@ -45,4 +45,3 @@ Responder ao Cliente
 Encaminhar ao próximo setor
 =======
 # A solução desenvolvida corresponde ao primeiro processo automatizado da Empresa Portal Fake, voltado para o Setor de Atendimento.
->>>>>>> 9ef8440f0b32a386f473da8dd875e38406881504
