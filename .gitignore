@@ -1,2 +1,8 @@
 HyperAutomation/source/.env
 .venv
+# Python
+__pycache__/
+*.py[cod]
+
+# Dados gerados pela automacao
+HyperAutomation/resources/ERP_Portal_Fake/
