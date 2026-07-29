@@ -1,2 +1,17 @@
 HyperAutomation/source/.env
 .venv
+
+# Perfis locais de navegador usados pelo Playwright/Chrome.
+# Podem conter cookies, sessoes, historico e cache.
+HyperAutomation/resources/browser_*/
+HyperAutomation/resources/browser_data/
+HyperAutomation/resources/browser_data_*/
+
+# Arquivos gerados pela automacao.
+HyperAutomation/downloads/
+HyperAutomation/evidencias/
+
+# Caches locais.
+__pycache__/
+*.py[cod]
+.vscode/
