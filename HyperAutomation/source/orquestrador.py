@@ -52,7 +52,7 @@ def executar_orquestracao(modo="unico", row_index=0):
         context.close()
 
     # 3. Geração de documentos, envio de e-mail e exclusão automática da ficha
-    email_destino = "carvalhosannyer@gmail.com"
+    email_destino = "fani.souza19@gmail.com"
 
     for i, cliente in enumerate(lista_clientes, start=1):
         print(f"\n[Etapa 3 - Cliente {i}/{len(lista_clientes)}] Processando: {cliente.get('Nome')} {cliente.get('Sobrenome')}")
