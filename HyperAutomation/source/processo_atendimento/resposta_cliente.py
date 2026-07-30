@@ -5,23 +5,41 @@ import os
 import smtplib
 from typing import Dict, List, Optional
 
+from pathlib import Path
 from dotenv import load_dotenv
 
 logger = logging.getLogger("RESPOSTA_CLIENTE")
 if not logger.handlers:
     logging.basicConfig(level=logging.INFO, format="[%(name)s] %(levelname)s: %(message)s")
 
-load_dotenv()
+def carregar_env() -> None:
+    path_atual = Path(__file__).resolve()
+    candidatos = [
+        path_atual.parents[1] / ".env",
+        path_atual.parents[2] / ".env",
+        path_atual.parents[3] / ".env",
+        Path.cwd() / ".env",
+        Path.cwd() / "HyperAutomation" / "source" / ".env",
+    ]
+    for env_path in candidatos:
+        if env_path.exists():
+            load_dotenv(env_path, override=True)
+            break
+    else:
+        load_dotenv()
+
+carregar_env()
 
 
 class RespostaClienteSMTP:
     """Dispara e-mails transacionais em HTML corporativo responsivo via SMTP."""
 
     def __init__(self) -> None:
-        self.host = os.getenv("SMTP_HOST", "smtp.gmail.com")
+        self.host = os.getenv("SMTP_HOST", "smtp.gmail.com").strip()
         self.port = int(os.getenv("SMTP_PORT", "465"))
-        self.email_remetente = os.getenv("EMAIL_REMETENTE", "")
-        self.senha_app = os.getenv("EMAIL_SENHA_APP", "")
+        self.email_remetente = (os.getenv("EMAIL_REMETENTE") or "").strip()
+        self.senha_app = (os.getenv("EMAIL_SENHA_APP") or os.getenv("EMAIL_SENHA") or "").strip()
+
 
     def _gerar_html_sucesso(self, nome_cliente: str, protocolo: str) -> str:
         """Retorna o HTML responsivo para aprovação do cadastro."""

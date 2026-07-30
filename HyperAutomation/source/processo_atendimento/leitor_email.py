@@ -25,8 +25,23 @@ logger = logging.getLogger("LEITOR_EMAIL")
 if not logger.handlers:
     logging.basicConfig(level=logging.INFO, format="[%(name)s] %(levelname)s: %(message)s")
 
-# Carrega variáveis de ambiente
-load_dotenv()
+def carregar_env() -> None:
+    path_atual = Path(__file__).resolve()
+    candidatos = [
+        path_atual.parents[1] / ".env",
+        path_atual.parents[2] / ".env",
+        path_atual.parents[3] / ".env",
+        Path.cwd() / ".env",
+        Path.cwd() / "HyperAutomation" / "source" / ".env",
+    ]
+    for env_path in candidatos:
+        if env_path.exists():
+            load_dotenv(env_path, override=True)
+            break
+    else:
+        load_dotenv()
+
+carregar_env()
 
 
 class LeitorEmailIMAP:
@@ -34,10 +49,11 @@ class LeitorEmailIMAP:
 
     def __init__(self, gestor: GestorArquivos | None = None) -> None:
         self.gestor = gestor or GestorArquivos()
-        self.host = os.getenv("IMAP_HOST", "imap.gmail.com")
+        self.host = os.getenv("IMAP_HOST", "imap.gmail.com").strip()
         self.port = int(os.getenv("IMAP_PORT", "993"))
-        self.email_remetente = os.getenv("EMAIL_REMETENTE", "")
-        self.senha_app = os.getenv("EMAIL_SENHA_APP", "")
+        self.email_remetente = (os.getenv("EMAIL_REMETENTE") or "").strip()
+        self.senha_app = (os.getenv("EMAIL_SENHA_APP") or os.getenv("EMAIL_SENHA") or "").strip()
+
 
     def _decodificar_texto(self, texto_bruto: str | bytes) -> str:
         """Decodifica cabeçalhos codificados em e-mails."""
