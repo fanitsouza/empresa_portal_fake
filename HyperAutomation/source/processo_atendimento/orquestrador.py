@@ -6,11 +6,26 @@ import random
 import sys
 from typing import List, Tuple
 
-from processo_atendimento.gestor_arquivos import GestorArquivos
-from processo_atendimento.leitor_email import LeitorEmailIMAP
-from processo_atendimento.portal_integracao import PortalERPIntegracao
-from processo_atendimento.resposta_cliente import RespostaClienteSMTP
-from processo_atendimento.validador_docs import ValidadorDocs
+
+# Adiciona dinamicamente a pasta 'source' ao sys.path para funcionar de qualquer diretório
+SOURCE_DIR = Path(__file__).resolve().parents[1]
+if str(SOURCE_DIR) not in sys.path:
+    sys.path.insert(0, str(SOURCE_DIR))
+
+
+try:
+    from processo_atendimento.gestor_arquivos import GestorArquivos
+    from processo_atendimento.leitor_email import LeitorEmailIMAP
+    from processo_atendimento.portal_integracao import PortalERPIntegracao
+    from processo_atendimento.resposta_cliente import RespostaClienteSMTP
+    from processo_atendimento.validador_docs import ValidadorDocs
+except ImportError:
+    from gestor_arquivos import GestorArquivos
+    from leitor_email import LeitorEmailIMAP
+    from portal_integracao import PortalERPIntegracao
+    from resposta_cliente import RespostaClienteSMTP
+    from validador_docs import ValidadorDocs
+
 
 logger = logging.getLogger("ORQUESTRADOR")
 if not logger.handlers:

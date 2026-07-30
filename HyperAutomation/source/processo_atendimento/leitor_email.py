@@ -7,8 +7,19 @@ from pathlib import Path
 import re
 from typing import List, Tuple
 
+import sys
+
+SOURCE_DIR = Path(__file__).resolve().parents[1]
+if str(SOURCE_DIR) not in sys.path:
+    sys.path.insert(0, str(SOURCE_DIR))
+
 from dotenv import load_dotenv
-from processo_atendimento.gestor_arquivos import GestorArquivos
+
+try:
+    from processo_atendimento.gestor_arquivos import GestorArquivos
+except ImportError:
+    from gestor_arquivos import GestorArquivos
+
 
 logger = logging.getLogger("LEITOR_EMAIL")
 if not logger.handlers:
