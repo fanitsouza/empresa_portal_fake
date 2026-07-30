@@ -24,10 +24,43 @@ class ValidadorDocs:
     """Inspeciona PDFs unificados e valida a presença dos 3 documentos obrigatórios."""
 
     REGRAS_DOCUMENTOS = {
-        "Ficha Cadastral Assinada": ["ficha", "cadastral", "assinatura", "dados"],
-        "Documento Oficial com Foto": ["identidade", "rg", "cpf", "carteira", "motorista"],
-        "Comprovante de Residência": ["comprovante", "residencia", "endereco", "endereço", "conta", "luz", "agua"],
+        "Ficha Cadastral Assinada": [
+            "ficha de cadastro",
+            "ficha cadastral",
+            "assinatura",
+            "protocolo de atendimento",
+        ],
+        "Documento Oficial com Foto": [
+            "carteira de identidade",
+            "identidade",
+            "rg ",
+            "rg:",
+            "rg-",
+            "cnh",
+            "carteira nacional",
+            "documento de identificação",
+            "documento de identificacao",
+            "passaporte",
+            "carteira identidade",
+        ],
+        "Comprovante de Residência": [
+            "comprovante",
+            "residencia",
+            "residência",
+            "conta de água",
+            "conta de agua",
+            "conta de luz",
+            "energia",
+            "fatura",
+            "manaus ambiental",
+            "amazonas energia",
+            "sanepar",
+            "sabesp",
+            "coelba",
+            "light",
+        ],
     }
+
 
     def _extrair_texto_pdf(self, caminho_pdf: Path) -> str:
         """Extrai o texto bruto de todas as páginas do PDF."""
