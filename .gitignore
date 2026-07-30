@@ -12,7 +12,10 @@ __pycache__/
 # Execution Data and Browser Data
 HyperAutomation/resources/browser_data*
 resources/browser_data*
+HyperAutomation/resources/screenshots/
+resources/screenshots/
 downloads/
 evidencias/
 HyperAutomation/resources/ERP_Portal_Fake/
+
 
