@@ -2,3 +2,4 @@ python-docx
 python-dotenv
 playwright
 pypdf
+openpyxl
