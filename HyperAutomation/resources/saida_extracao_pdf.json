@@ -1,0 +1,30 @@
+[
+    {
+        "arquivo": "C:\\Users\\Turma02\\Documents\\GitHub\\empresa_portal_fake\\HyperAutomation\\resources\\Documentos_Aprovados\\documento_ficticio_1.pdf",
+        "sucesso": true,
+        "dados": {
+            "Nome": "João Pedro Almeida",
+            "CPF": "123.456.789-09",
+            "E-mail": "joao.almeida.teste@example.com",
+            "Telefone": "(11) 98765-4321",
+            "Nascimento": "15/03/1995",
+            "Endereco": "Rua das Acácias, 120 - Centro, São Paulo/SP - CEP 01000-000"
+        },
+        "campos_ausentes": [],
+        "erro": null
+    },
+    {
+        "arquivo": "C:\\Users\\Turma02\\Documents\\GitHub\\empresa_portal_fake\\HyperAutomation\\resources\\Documentos_Aprovados\\documento_ficticio_2.pdf",
+        "sucesso": true,
+        "dados": {
+            "Nome": "Mariana Costa Ribeiro",
+            "CPF": "987.654.321-00",
+            "E-mail": "mariana.ribeiro.teste@example.com",
+            "Telefone": "(21) 99876-1234",
+            "Nascimento": "22/08/1992",
+            "Endereco": "Av. Atlântica, 850 - Copacabana, Rio de Janeiro/RJ - CEP 22000-000"
+        },
+        "campos_ausentes": [],
+        "erro": null
+    }
+]
