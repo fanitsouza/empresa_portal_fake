@@ -1,4 +1,5 @@
 import importlib.util
+import json
 from pathlib import Path
 
 import pytest
@@ -78,3 +79,56 @@ def test_normaliza_cpf_formatado_para_os_11_digitos():
 def test_rejeita_cpf_incompleto():
     with pytest.raises(ValueError, match="exatamente 11 digitos"):
         cadastro._normalizar_cpf("123.456")
+
+
+def test_cadastrar_usuario_por_api(monkeypatch):
+    class RespostaFake:
+        status = 201
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return None
+
+        def read(self):
+            return json.dumps({"sucesso": True}).encode("utf-8")
+
+    requisicoes = []
+
+    def urlopen_fake(requisicao, timeout):
+        requisicoes.append((requisicao, timeout))
+        return RespostaFake()
+
+    monkeypatch.setattr(cadastro, "urlopen", urlopen_fake)
+    usuario = {
+        "nome": "Ana",
+        "sobrenome": "Silva",
+        "cpf": "12345678901",
+        "email": "ana@email.com",
+        "telefone": "",
+        "nascimento": "2000-01-01",
+        "endereco": "Rua A",
+        "observacao": "",
+        "status": "ATIVO",
+    }
+
+    sucessos, falhas = cadastro.cadastrar_usuarios_api(
+        [usuario], "https://api.exemplo.test/cadastros", timeout=3
+    )
+
+    assert (sucessos, falhas) == (1, [])
+    assert requisicoes[0][1] == 3
+    enviado = json.loads(requisicoes[0][0].data.decode("utf-8"))
+    assert enviado["cpf"] == "12345678901"
+
+
+def test_ml_em_falha_preserva_dados_originais(monkeypatch):
+    usuario = {"cpf": "12345678901", "nome": "Ana"}
+
+    def falhar(*args, **kwargs):
+        raise cadastro.IntegracaoAPIError("indisponivel")
+
+    monkeypatch.setattr(cadastro, "chamar_servico_json", falhar)
+
+    assert cadastro.enriquecer_usuario_ml(usuario, "https://ml.test") == usuario
