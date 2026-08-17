@@ -1,5 +1,5 @@
 
-# Processo 1 – Atendimento | Portal Fake Soluções Digitais
+# Portal Fake Soluções Digitais
 
 Este projeto faz parte da disciplina **Técnicas de Hyperautomation** e tem como objetivo desenvolver o primeiro módulo automatizado da Empresa Portal Fake Soluções Digitais.
 
