@@ -4,6 +4,7 @@ import imaplib
 import logging
 import os
 import re
+import shutil
 import unicodedata
 from dataclasses import dataclass
 from email import message_from_bytes
@@ -124,6 +125,28 @@ def localizar_pdfs_aprovados(pasta: str | Path) -> list[Path]:
         raise NenhumPDFEncontradoError(f"Nenhum PDF encontrado em: {caminho}")
 
     return pdfs
+
+
+def arquivar_pdfs_processados(
+    arquivos: list[str | Path], pasta_arquivados: str | Path
+) -> list[Path]:
+    """Move PDFs processados para a pasta de arquivados sem sobrescrever arquivos."""
+    destino = garantir_pasta_documentos(pasta_arquivados)
+    arquivos_movidos: list[Path] = []
+
+    for arquivo in arquivos:
+        origem = Path(arquivo)
+        validar_origem = origem.resolve()
+        if not origem.is_file() or origem.suffix.lower() != ".pdf":
+            LOGGER.warning("Arquivo nao encontrado para arquivamento: %s", origem)
+            continue
+
+        caminho_destino = _caminho_unico(destino, origem.name)
+        shutil.move(str(validar_origem), str(caminho_destino))
+        arquivos_movidos.append(caminho_destino)
+        LOGGER.info("PDF arquivado em: %s", caminho_destino)
+
+    return arquivos_movidos
 
 
 def baixar_pdfs_aprovados_por_imap(

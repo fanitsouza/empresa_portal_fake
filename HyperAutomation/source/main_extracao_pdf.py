@@ -5,9 +5,11 @@ import logging
 from pathlib import Path
 
 from extracao_pdf import processar_pdfs, salvar_resultados_json
+from planilha_mestra import atualizar_planilha_mestra
 from localizador_documentos import (
     FalhaConsultaEmailError,
     NenhumPDFEncontradoError,
+    arquivar_pdfs_processados,
     baixar_pdfs_aprovados_por_imap,
     garantir_pasta_documentos,
     localizar_pdfs_aprovados,
@@ -18,6 +20,8 @@ BASE_DIR = Path(__file__).resolve().parent
 PATH_ROOT = BASE_DIR.parent
 PASTA_PADRAO = PATH_ROOT / "resources" / "Documentos_Aprovados"
 SAIDA_PADRAO = PATH_ROOT / "resources" / "saida_extracao_pdf.json"
+PLANILHA_PADRAO = PATH_ROOT / "resources" / "planilha_mestra.xlsx"
+PASTA_ARQUIVADOS = PATH_ROOT / "resources" / "ERP_Portal_Fake" / "Arquivados"
 
 LOGGER = logging.getLogger(__name__)
 
@@ -29,6 +33,7 @@ def main() -> int:
 
     pasta_documentos = resolver_caminho(argumentos.pasta, PASTA_PADRAO)
     caminho_saida = resolver_caminho(argumentos.saida, SAIDA_PADRAO)
+    caminho_planilha = resolver_caminho(argumentos.planilha, PLANILHA_PADRAO)
 
     LOGGER.info("Iniciando extracao de documentos PDF.")
     garantir_pasta_documentos(pasta_documentos)
@@ -53,6 +58,7 @@ def main() -> int:
         print("Resumo final:")
         print("  PDFs encontrados: 0")
         print("  JSON gerado:", caminho_saida)
+        print("  Planilha mestra: nao alterada")
         if erro_email:
             print("  Falha na consulta de e-mail:", erro_email)
         return 1
@@ -60,6 +66,10 @@ def main() -> int:
     LOGGER.info("PDFs localizados para processamento: %s", len(pdfs))
     resultados = processar_pdfs(pdfs)
     salvar_resultados_json(resultados, caminho_saida)
+    planilha, adicionados, atualizados = atualizar_planilha_mestra(
+        resultados, caminho_planilha
+    )
+    arquivos_arquivados = arquivar_pdfs_processados(pdfs, PASTA_ARQUIVADOS)
 
     sucessos = sum(1 for resultado in resultados if resultado["sucesso"])
     falhas = len(resultados) - sucessos
@@ -70,6 +80,10 @@ def main() -> int:
     print(f"  Processados com sucesso: {sucessos}")
     print(f"  Processados com falha: {falhas}")
     print(f"  JSON gerado: {caminho_saida}")
+    print(f"  Planilha mestra: {planilha}")
+    print(f"  Registros adicionados na planilha: {adicionados}")
+    print(f"  Registros atualizados na planilha: {atualizados}")
+    print(f"  PDFs movidos para Arquivados: {len(arquivos_arquivados)}")
     if erro_email:
         print(f"  Falha na consulta de e-mail: {erro_email}")
 
@@ -94,6 +108,11 @@ def criar_parser() -> argparse.ArgumentParser:
         "--saida",
         default=None,
         help="Arquivo JSON de saida. Caminhos relativos usam a raiz HyperAutomation.",
+    )
+    parser.add_argument(
+        "--planilha",
+        default=None,
+        help="Planilha mestra XLSX. Caminhos relativos usam a raiz HyperAutomation.",
     )
     return parser
 

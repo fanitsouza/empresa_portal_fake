@@ -6,9 +6,40 @@ sys.path.append(str(Path(__file__).resolve().parents[1] / "source"))
 
 from localizador_documentos import (  # noqa: E402
     ConfiguracaoIMAP,
+    arquivar_pdfs_processados,
     baixar_pdfs_aprovados_por_imap,
     localizar_pdfs_aprovados,
 )
+
+
+def test_arquiva_pdfs_e_cria_pasta_destino(tmp_path):
+    origem = tmp_path / "Documentos_Aprovados"
+    destino = tmp_path / "ERP_Portal_Fake" / "Arquivados"
+    origem.mkdir()
+    pdf = origem / "cadastro.pdf"
+    pdf.write_bytes(b"%PDF")
+
+    movidos = arquivar_pdfs_processados([pdf], destino)
+
+    assert movidos == [destino / "cadastro.pdf"]
+    assert not pdf.exists()
+    assert (destino / "cadastro.pdf").read_bytes() == b"%PDF"
+
+
+def test_arquivamento_nao_sobrescreve_pdf_existente(tmp_path):
+    origem = tmp_path / "Documentos_Aprovados"
+    destino = tmp_path / "ERP_Portal_Fake" / "Arquivados"
+    origem.mkdir()
+    destino.mkdir(parents=True)
+    pdf = origem / "cadastro.pdf"
+    pdf.write_bytes(b"novo")
+    (destino / "cadastro.pdf").write_bytes(b"antigo")
+
+    movidos = arquivar_pdfs_processados([pdf], destino)
+
+    assert movidos == [destino / "cadastro_1.pdf"]
+    assert (destino / "cadastro.pdf").read_bytes() == b"antigo"
+    assert (destino / "cadastro_1.pdf").read_bytes() == b"novo"
 
 
 def test_localizacao_recursiva_de_pdfs(tmp_path):
