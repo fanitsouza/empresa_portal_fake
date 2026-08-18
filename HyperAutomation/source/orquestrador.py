@@ -16,12 +16,12 @@ from documento_email import criar_documento, enviar_email
 
 def executar_orquestracao(modo="unico", row_index=0):
     """
-    Executa a orquestração do RPA.
-    - modo="unico": Extrai e gera documento apenas para a linha especificada (ex: row_index=0).
-    - modo="todos": Extrai e gera documento para TODOS os cadastros do portal.
+    Executa o Processo 1 - Envio de Fichas para Assinatura.
+    Dica: Para o painel unificado com todos os processos (1, 2, 3 e 4), use: python main.py
     """
     print("=" * 65)
-    print("🚀 INICIANDO ORQUESTRAÇÃO RPA COMPLETA (HYPERAUTOMATION)")
+    print("🚀 [PROCESSO 1] INICIANDO ENVIO DE FICHAS PARA ASSINATURA")
+    print("ℹ️ Dica: Para executar outros processos ou pipelines, use: python main.py")
     print("=" * 65)
 
     usuarios = carregar_usuarios()
