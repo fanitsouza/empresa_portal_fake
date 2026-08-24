@@ -14,6 +14,7 @@ from pypdf.errors import PdfReadError
 LOGGER = logging.getLogger(__name__)
 
 CAMPO_NOME = "Nome"
+CAMPO_SOBRENOME = "Sobrenome"
 CAMPO_CPF = "CPF"
 CAMPO_EMAIL = "E-mail"
 CAMPO_TELEFONE = "Telefone"
@@ -88,12 +89,13 @@ class ResultadoPDF:
 
 
 ROTULOS_CAMPOS = {
-    CAMPO_NOME: ("Nome completo", "Nome"),
-    CAMPO_CPF: ("CPF",),
-    CAMPO_EMAIL: ("E-mail", "Email"),
-    CAMPO_TELEFONE: ("Telefone", "Celular"),
-    CAMPO_NASCIMENTO: ("Data de nascimento", "Nascimento"),
-    CAMPO_ENDERECO: ("Endereco completo", "Endereco", "Endereço completo", "Endereço"),
+    CAMPO_NOME: ("Nome completo", "Nome do cliente", "Nome"),
+    CAMPO_SOBRENOME: ("Sobrenome", "Último nome", "Ultimo nome", "Segundo nome"),
+    CAMPO_CPF: ("CPF", "Documento CPF"),
+    CAMPO_EMAIL: ("E-mail", "Email", "Correio eletrônico"),
+    CAMPO_TELEFONE: ("Telefone", "Celular", "WhatsApp", "Tel"),
+    CAMPO_NASCIMENTO: ("Data de nascimento", "Nascimento", "Data nasc"),
+    CAMPO_ENDERECO: ("Endereco completo", "Endereço completo", "Endereco", "Endereço"),
 }
 
 EMAIL_REGEX = re.compile(
@@ -157,6 +159,7 @@ def extrair_campos_texto(texto: str) -> dict[str, str]:
     """Identifica e normaliza os campos obrigatorios a partir do texto extraido."""
     linhas = [linha.strip() for linha in texto.splitlines()]
     dados = {campo: "" for campo in CAMPOS_OBRIGATORIOS}
+    sobrenome_extraido = ""
 
     for indice, linha in enumerate(linhas):
         if not linha:
@@ -170,11 +173,41 @@ def extrair_campos_texto(texto: str) -> dict[str, str]:
             if not _valor_preenchido(valor):
                 valor = _proxima_linha_com_valor(linhas, indice + 1)
 
-            if valor and not dados[campo]:
-                dados[campo] = _normalizar_valor(campo, valor)
+            if valor:
+                if campo == CAMPO_SOBRENOME:
+                    if not sobrenome_extraido:
+                        sobrenome_extraido = _normalizar_valor(campo, valor)
+                elif not dados.get(campo):
+                    dados[campo] = _normalizar_valor(campo, valor)
+
+    if sobrenome_extraido:
+        dados[CAMPO_SOBRENOME] = sobrenome_extraido
 
     _aplicar_regex_fallbacks(texto, dados)
-    return dados
+
+    # Se foi capturado Sobrenome e o Nome ainda não o contém, unifica para formar o Nome Completo
+    nome_atual = dados.get(CAMPO_NOME, "").strip()
+    sobrenome_atual = dados.get(CAMPO_SOBRENOME, "").strip()
+
+    if sobrenome_atual:
+        if not nome_atual:
+            dados[CAMPO_NOME] = sobrenome_atual
+        elif sobrenome_atual.lower() not in nome_atual.lower():
+            dados[CAMPO_NOME] = f"{nome_atual} {sobrenome_atual}".strip()
+
+    # Se ainda houver apenas um primeiro nome (sem sobrenome), tenta inferir pelo e-mail
+    partes_nome = dados.get(CAMPO_NOME, "").split()
+    if len(partes_nome) == 1 and dados.get(CAMPO_EMAIL):
+        usuario_email = dados[CAMPO_EMAIL].split("@")[0]
+        candidatos_email = [
+            p.title() for p in re.split(r"[._\-0-9]", usuario_email)
+            if len(p) > 1 and p.isalpha()
+        ]
+        sobrenomes_email = [c for c in candidatos_email if c.lower() != partes_nome[0].lower()]
+        if sobrenomes_email:
+            dados[CAMPO_NOME] = f"{partes_nome[0]} {' '.join(sobrenomes_email)}".strip()
+
+    return {k: v for k, v in dados.items() if k in CAMPOS_OBRIGATORIOS}
 
 
 def validar_campos_obrigatorios(dados: dict[str, str]) -> list[str]:
@@ -308,6 +341,24 @@ def _normalizar_valor(campo: str, valor: str) -> str:
 
 
 def _aplicar_regex_fallbacks(texto: str, dados: dict[str, str]) -> None:
+    if not dados.get(CAMPO_SOBRENOME):
+        sobrenome_match = re.search(
+            r"(?:Sobrenome|Último Nome|Ultimo Nome|Segundo Nome)[\s:]+([A-ZÁÉÍÓÚÂÊÔÃÕÇa-záéíóúâêôãõç ]+)",
+            texto,
+            re.IGNORECASE,
+        )
+        if sobrenome_match:
+            dados[CAMPO_SOBRENOME] = sobrenome_match.group(1).strip().split("\n")[0].strip()
+
+    if not dados.get(CAMPO_NOME):
+        nome_match = re.search(
+            r"(?:Nome Completo|Nome do Cliente|Nome)[\s:]+([A-ZÁÉÍÓÚÂÊÔÃÕÇa-záéíóúâêôãõç ]+)",
+            texto,
+            re.IGNORECASE,
+        )
+        if nome_match:
+            dados[CAMPO_NOME] = nome_match.group(1).strip().split("\n")[0].strip()
+
     if not dados[CAMPO_CPF]:
         correspondencia = CPF_REGEX.search(texto)
         if correspondencia:

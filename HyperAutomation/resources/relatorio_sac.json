@@ -1,66 +1,66 @@
 {
   "processo": "Processo 4 - SAC (Serviço de Atendimento ao Cliente)",
   "proximo_processo": "Processo 5 - Relatórios e Métricas de Performance",
-  "data_geracao": "23/08/2026 22:11:42",
+  "data_geracao": "24/08/2026 11:01:59",
   "resumo_metricas": {
     "total_solicitacoes_sac": 4,
-    "cadastros_confirmados_com_sucesso": 3,
-    "cadastros_duplicados_notificados": 0,
-    "cadastros_erros_notificados": 1,
-    "taxa_sucesso_cadastros_pct": 75.0
+    "cadastros_confirmados_com_sucesso": 0,
+    "cadastros_duplicados_notificados": 4,
+    "cadastros_erros_notificados": 0,
+    "taxa_sucesso_cadastros_pct": 0.0
   },
   "atendimentos_sac": [
     {
-      "protocolo": "#SAC-2026-3135",
-      "data_registro": "23/08/2026 22:11:27",
+      "protocolo": "#SAC-2026-1653",
+      "data_registro": "24/08/2026 11:01:59",
       "nome_cliente": "João Pedro Almeida",
       "cpf": "12345678909",
       "email": "joao.almeida.teste@example.com",
       "telefone": "(11) 98765-4321",
-      "status_cadastro": "SUCESSO",
-      "status_sac": "CONFIRMACAO_ENVIADA",
-      "motivo_erro": "Cadastro realizado com sucesso",
-      "email_enviado": "Enviado com sucesso",
-      "atualizado_em": "23/08/2026 22:11:31"
+      "status_cadastro": "DUPLICADO",
+      "status_sac": "NOTIFICACAO_ERRO_ENVIADA",
+      "motivo_erro": "Cadastro duplicado: CPF já existente na base de dados do Portal Fake",
+      "email_enviado": "Não enviado (Opção desativada)",
+      "atualizado_em": "24/08/2026 11:01:59"
     },
     {
-      "protocolo": "#SAC-2026-8809",
-      "data_registro": "23/08/2026 22:11:27",
+      "protocolo": "#SAC-2026-4292",
+      "data_registro": "24/08/2026 11:01:59",
       "nome_cliente": "Mariana Costa Ribeiro",
       "cpf": "98765432100",
       "email": "mariana.ribeiro.teste@example.com",
       "telefone": "(21) 99876-1234",
-      "status_cadastro": "SUCESSO",
-      "status_sac": "CONFIRMACAO_ENVIADA",
-      "motivo_erro": "Cadastro realizado com sucesso",
-      "email_enviado": "Enviado com sucesso",
-      "atualizado_em": "23/08/2026 22:11:35"
+      "status_cadastro": "DUPLICADO",
+      "status_sac": "NOTIFICACAO_ERRO_ENVIADA",
+      "motivo_erro": "Cadastro duplicado: CPF já existente na base de dados do Portal Fake",
+      "email_enviado": "Não enviado (Opção desativada)",
+      "atualizado_em": "24/08/2026 11:01:59"
     },
     {
-      "protocolo": "#SAC-2026-8816",
-      "data_registro": "23/08/2026 22:11:27",
-      "nome_cliente": "Fani",
+      "protocolo": "#SAC-2026-2122",
+      "data_registro": "24/08/2026 11:01:59",
+      "nome_cliente": "Fani Batista",
       "cpf": "02033414221",
       "email": "fani.souza19@gmail.com",
       "telefone": "(92) 99503-7524",
-      "status_cadastro": "ERRO_CADASTRO",
+      "status_cadastro": "DUPLICADO",
       "status_sac": "NOTIFICACAO_ERRO_ENVIADA",
-      "motivo_erro": "Erro no preenchimento/validação do formulário: Erro na validação do formulário",
-      "email_enviado": "Enviado com sucesso",
-      "atualizado_em": "23/08/2026 22:11:38"
+      "motivo_erro": "Cadastro duplicado: CPF já existente na base de dados do Portal Fake",
+      "email_enviado": "Não enviado (Opção desativada)",
+      "atualizado_em": "24/08/2026 11:01:59"
     },
     {
-      "protocolo": "#SAC-2026-5467",
-      "data_registro": "23/08/2026 22:11:27",
+      "protocolo": "#SAC-2026-6072",
+      "data_registro": "24/08/2026 11:01:59",
       "nome_cliente": "Lucas Henrique Lima",
       "cpf": "11144477735",
       "email": "lucas.lima@exemplo.com",
       "telefone": "(92) 99123-4567",
-      "status_cadastro": "SUCESSO",
-      "status_sac": "CONFIRMACAO_ENVIADA",
-      "motivo_erro": "Cadastro realizado com sucesso",
-      "email_enviado": "Enviado com sucesso",
-      "atualizado_em": "23/08/2026 22:11:42"
+      "status_cadastro": "DUPLICADO",
+      "status_sac": "NOTIFICACAO_ERRO_ENVIADA",
+      "motivo_erro": "Cadastro duplicado: CPF já existente na base de dados do Portal Fake",
+      "email_enviado": "Não enviado (Opção desativada)",
+      "atualizado_em": "24/08/2026 11:01:59"
     }
   ]
 }

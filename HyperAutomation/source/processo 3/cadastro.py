@@ -117,10 +117,12 @@ def _registro_aprovado(registro: dict[str, str]) -> bool:
 
 
 def _separar_nome(nome_completo: str) -> tuple[str, str]:
-    partes = nome_completo.strip().split(maxsplit=1)
+    partes = (nome_completo or "").strip().split(maxsplit=1)
     if not partes:
-        return "", ""
-    return partes[0], partes[1] if len(partes) == 2 else ""
+        return "Cliente", "Silva"
+    if len(partes) == 1:
+        return partes[0], partes[0]
+    return partes[0], partes[1]
 
 
 def _texto(valor: Any) -> str:

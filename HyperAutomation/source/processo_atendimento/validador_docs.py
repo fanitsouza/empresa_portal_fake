@@ -97,16 +97,30 @@ class ValidadorDocs:
         email_match = re.search(r"[\w\.-]+@[\w\.-]+\.\w+", texto)
         email = email_match.group(0) if email_match else "cliente@example.com"
 
-        # Extração de Nome
-        nome_match = re.search(r"(?:Nome|Cliente|Nome Completo)[\s:]+([A-ZÁÉÍÓÚÂÊÔÃÕÇa-záéíóúâêôãõç ]+)", texto)
+        # Extração de Nome e Sobrenome
+        nome_match = re.search(r"(?:Nome Completo|Nome do Cliente|Nome)[\s:]+([A-ZÁÉÍÓÚÂÊÔÃÕÇa-záéíóúâêôãõç ]+)", texto)
+        sobrenome_match = re.search(r"(?:Sobrenome|Último Nome|Ultimo Nome|Segundo Nome)[\s:]+([A-ZÁÉÍÓÚÂÊÔÃÕÇa-záéíóúâêôãõç ]+)", texto)
+
         if nome_match:
-            nome_bruto = nome_match.group(1).strip().split("\n")[0]
+            nome_bruto = nome_match.group(1).strip().split("\n")[0].strip()
             nome_partes = [p for p in nome_bruto.split() if len(p) > 1]
-            nome = " ".join(nome_partes[:3]) if nome_partes else "Cliente Demonstração"
+            nome = " ".join(nome_partes) if nome_partes else "Cliente Demonstração"
         else:
-            # Tenta inferir nome pelo stem do arquivo ou default
             stem_limpo = re.sub(r"[^\w\s]", " ", caminho_pdf.stem).strip()
             nome = stem_limpo.title() if len(stem_limpo) > 3 else "Cliente Demonstração"
+
+        if sobrenome_match:
+            sobrenome_bruto = sobrenome_match.group(1).strip().split("\n")[0].strip()
+            if sobrenome_bruto and sobrenome_bruto.lower() not in nome.lower():
+                nome = f"{nome} {sobrenome_bruto}".strip()
+
+        # Se tiver apenas 1 nome, tenta inferir sobrenome do e-mail
+        if len(nome.split()) == 1 and email and "@" in email:
+            usuario_email = email.split("@")[0]
+            candidatos = [p.title() for p in re.split(r"[._\-0-9]", usuario_email) if len(p) > 1 and p.isalpha()]
+            sobrenomes_email = [c for c in candidatos if c.lower() != nome.lower()]
+            if sobrenomes_email:
+                nome = f"{nome} {' '.join(sobrenomes_email)}".strip()
 
         return {
             "nome": nome,

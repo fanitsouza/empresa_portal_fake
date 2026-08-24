@@ -68,13 +68,31 @@ def mascarar_cpf(cpf: str) -> str:
     return cpf or "Não informado"
 
 
-def extrair_nome_sobrenome(nome_completo: str) -> Tuple[str, str]:
-    """Separa o nome completo em primeiro nome e sobrenome."""
+def extrair_nome_sobrenome(nome_completo: str, email: str = "") -> Tuple[str, str]:
+    """Separa o nome completo em primeiro nome e sobrenome com fallback seguro."""
     partes = (nome_completo or "").strip().split()
     if not partes:
-        return "", ""
+        if email and "@" in email:
+            usuario = email.split("@")[0]
+            subpartes = [p.title() for p in re.split(r"[._\-0-9]", usuario) if len(p) > 1 and p.isalpha()]
+            if len(subpartes) >= 2:
+                return subpartes[0], " ".join(subpartes[1:])
+            elif len(subpartes) == 1:
+                return subpartes[0], "Silva"
+        return "Cliente", "PortalFake"
+
     if len(partes) == 1:
-        return partes[0], partes[0]
+        primeiro = partes[0]
+        # Se tem apenas 1 nome (ex: "Fani"), tenta inferir sobrenome a partir do e-mail
+        if email and "@" in email:
+            usuario = email.split("@")[0]
+            subpartes = [p.title() for p in re.split(r"[._\-0-9]", usuario) if len(p) > 1 and p.isalpha()]
+            sobrenomes_email = [c for c in subpartes if c.lower() != primeiro.lower()]
+            if sobrenomes_email:
+                return primeiro, " ".join(sobrenomes_email)
+        # Fallback de segurança para garantir que o sobrenome NUNCA fique vazio
+        return primeiro, primeiro
+
     return partes[0], " ".join(partes[1:])
 
 
@@ -120,9 +138,8 @@ def carregar_clientes_planilha(caminho_planilha: str | Path) -> List[Dict[str, A
                 continue
 
             nome_completo = str(linha[col_indices["Nome"]] or "").strip()
-            partes = nome_completo.split(" ", 1)
-            primeiro_nome = partes[0]
-            sobrenome = partes[1] if len(partes) > 1 else ""
+            email_cliente = str(linha[col_indices.get("E-mail", 3)] or "").strip()
+            primeiro_nome, sobrenome = extrair_nome_sobrenome(nome_completo, email_cliente)
 
             cpf_bruto = str(linha[col_indices["CPF"]] or "").strip()
             cpf_digitos = re.sub(r"\D", "", cpf_bruto)
@@ -134,7 +151,7 @@ def carregar_clientes_planilha(caminho_planilha: str | Path) -> List[Dict[str, A
                 "sobrenome": sobrenome,
                 "cpf": cpf_digitos,
                 "cpf_formatado": cpf_bruto,
-                "email": str(linha[col_indices.get("E-mail", 3)] or "").strip(),
+                "email": email_cliente,
                 "telefone": str(linha[col_indices.get("Telefone", 4)] or "").strip(),
                 "nascimento": str(linha[col_indices.get("Nascimento", 5)] or "").strip(),
                 "endereco": str(linha[col_indices.get("Endereco", 6)] or "").strip(),
@@ -178,8 +195,17 @@ def cadastrar_cliente_portal(page, cliente: Dict[str, Any]) -> Tuple[bool, str]:
     page.click("#btnNovo")
     page.locator("#modal").wait_for(state="visible", timeout=3000)
 
-    page.fill("#f_nome", cliente.get("nome", ""))
-    page.fill("#f_sobrenome", cliente.get("sobrenome", ""))
+    nome = (cliente.get("nome") or "").strip()
+    sobrenome = (cliente.get("sobrenome") or "").strip()
+    if not sobrenome:
+        nome, sobrenome = extrair_nome_sobrenome(cliente.get("nome_completo") or nome, cliente.get("email", ""))
+    if not sobrenome:
+        sobrenome = nome or "Silva"
+    if not nome:
+        nome = "Cliente"
+
+    page.fill("#f_nome", nome)
+    page.fill("#f_sobrenome", sobrenome)
     page.fill("#f_cpf", cliente.get("cpf", ""))
     page.fill("#f_email", cliente.get("email", ""))
     page.fill("#f_telefone", cliente.get("telefone", ""))
@@ -300,7 +326,7 @@ def executar_processo_3(
         url_portal = INDEX_HTML.resolve().as_uri()
         print(f"\n[Etapa 2] Acessando Portal Fake: {url_portal}")
         page.goto(url_portal)
-        page.wait_for_selector("#tbody", timeout=5000)
+        page.wait_for_selector("#btnNovo", state="visible", timeout=10000)
 
         for i, cliente in enumerate(lista_processar, start=1):
             cpf_formatado = cliente.get("cpf_formatado", cliente.get("cpf"))

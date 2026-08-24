@@ -24,8 +24,9 @@ def extrair_dados(page=None, row_index=0, cpf=None):
         page.goto(portal_url)
         close_browser_after = True
 
-    page.wait_for_selector("#tbody", timeout=5000)
-    page.wait_for_timeout(500)
+    page.wait_for_selector("#btnNovo", timeout=10000)
+    page.wait_for_selector("#tbody", state="attached", timeout=10000)
+    page.wait_for_timeout(300)
 
     # Se um CPF específico foi solicitado, faz a busca
     if cpf:
@@ -70,7 +71,8 @@ def extrair_todos_dados(page):
     """
     Extrai uma lista contendo os dados de TODOS os cadastros presentes na tabela do Portal Fake.
     """
-    page.wait_for_selector("#tbody", timeout=5000)
+    page.wait_for_selector("#btnNovo", timeout=10000)
+    page.wait_for_selector("#tbody", state="attached", timeout=10000)
     botoes_editar = page.locator("button[data-action='editar']")
     total = botoes_editar.count()
 
