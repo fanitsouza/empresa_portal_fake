@@ -30,10 +30,19 @@ ENV_PATH = BASE_DIR / ".env"
 
 load_dotenv(ENV_PATH)
 
-sys.path.append(str(BASE_DIR))
-sys.path.append(str(RESOURCES_DIR))
+import importlib.util
 
-from bot import carregar_usuarios, preencher_portal_rapido
+def _carregar_modulo_bot_resources():
+    bot_path = RESOURCES_DIR / "bot.py"
+    spec = importlib.util.spec_from_file_location("bot_portal_resources", str(bot_path))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+_bot_res = _carregar_modulo_bot_resources()
+carregar_usuarios = _bot_res.carregar_usuarios
+preencher_portal_rapido = _bot_res.preencher_portal_rapido
+
 from extracao import extrair_dados, extrair_todos_dados
 from documento_email import criar_documento, enviar_email
 

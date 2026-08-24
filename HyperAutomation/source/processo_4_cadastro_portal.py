@@ -60,6 +60,24 @@ if not LOGGER.handlers:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s | [%(name)s] %(levelname)s: %(message)s")
 
 
+def mascarar_cpf(cpf: str) -> str:
+    """Formata o CPF para exibição segura com máscara."""
+    digitos = re.sub(r"\D", "", cpf)
+    if len(digitos) == 11:
+        return f"***.{digitos[3:6]}.***-{digitos[9:]}"
+    return cpf or "Não informado"
+
+
+def extrair_nome_sobrenome(nome_completo: str) -> Tuple[str, str]:
+    """Separa o nome completo em primeiro nome e sobrenome."""
+    partes = (nome_completo or "").strip().split()
+    if not partes:
+        return "", ""
+    if len(partes) == 1:
+        return partes[0], partes[0]
+    return partes[0], " ".join(partes[1:])
+
+
 def garantir_diretorios() -> None:
     """Cria os diretórios necessários para evidências e logs."""
     for pasta in (
