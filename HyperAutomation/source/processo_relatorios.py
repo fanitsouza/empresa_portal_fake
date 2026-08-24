@@ -662,10 +662,10 @@ def enviar_relatorio_email_gerente(
     """
     Envia e-mail executivo ao Gerente com o Relatório em anexo via SMTP.
     """
-    email_remetente = (os.getenv("EMAIL_REMETENTE") or "").strip()
-    senha_app = (os.getenv("EMAIL_SENHA_APP") or os.getenv("EMAIL_SENHA") or "").strip()
-    smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com").strip()
-    smtp_port = int(os.getenv("SMTP_PORT", "465"))
+    email_remetente = (os.getenv("EMAIL_REMETENTE") or os.getenv("SMTP_USER") or "").strip()
+    senha_app = (os.getenv("EMAIL_SENHA_APP") or os.getenv("EMAIL_SENHA") or os.getenv("SMTP_PASSWORD") or "").strip()
+    smtp_host = (os.getenv("SMTP_HOST") or os.getenv("SMTP_SERVER") or "smtp.gmail.com").strip()
+    smtp_port = int(os.getenv("SMTP_PORT", "587"))
 
     destinatario = (
         email_gerente
@@ -738,9 +738,15 @@ def enviar_relatorio_email_gerente(
             anexo.add_header("Content-Disposition", "attachment", filename=caminho_pdf.name)
             mensagem.attach(anexo)
 
-        with smtplib.SMTP_SSL(smtp_host, smtp_port, timeout=10.0) as server:
-            server.login(email_remetente, senha_app)
-            server.sendmail(email_remetente, destinatario, mensagem.as_string())
+        if smtp_port == 465:
+            with smtplib.SMTP_SSL(smtp_host, smtp_port, timeout=15.0) as server:
+                server.login(email_remetente, senha_app)
+                server.sendmail(email_remetente, destinatario, mensagem.as_string())
+        else:
+            with smtplib.SMTP(smtp_host, smtp_port, timeout=15.0) as server:
+                server.starttls()
+                server.login(email_remetente, senha_app)
+                server.sendmail(email_remetente, destinatario, mensagem.as_string())
 
         LOGGER.info(f"[GERÊNCIA EMAIL] Relatório em PDF enviado com sucesso para o Gerente: {destinatario}")
         return True, "Enviado com sucesso"

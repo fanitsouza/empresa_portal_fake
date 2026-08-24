@@ -6,6 +6,13 @@ Redireciona para HyperAutomation/main.py
 import sys
 from pathlib import Path
 
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 BASE_DIR = Path(__file__).resolve().parent
 HYPER_MAIN = BASE_DIR / "HyperAutomation" / "main.py"
 

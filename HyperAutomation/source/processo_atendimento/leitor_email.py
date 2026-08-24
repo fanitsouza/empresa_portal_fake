@@ -49,10 +49,10 @@ class LeitorEmailIMAP:
 
     def __init__(self, gestor: GestorArquivos | None = None) -> None:
         self.gestor = gestor or GestorArquivos()
-        self.host = os.getenv("IMAP_HOST", "imap.gmail.com").strip()
+        self.host = (os.getenv("IMAP_HOST") or os.getenv("IMAP_SERVER") or "imap.gmail.com").strip()
         self.port = int(os.getenv("IMAP_PORT", "993"))
-        self.email_remetente = (os.getenv("EMAIL_REMETENTE") or "").strip()
-        self.senha_app = (os.getenv("EMAIL_SENHA_APP") or os.getenv("EMAIL_SENHA") or "").strip()
+        self.email_remetente = (os.getenv("EMAIL_REMETENTE") or os.getenv("IMAP_USER") or "").strip()
+        self.senha_app = (os.getenv("EMAIL_SENHA_APP") or os.getenv("EMAIL_SENHA") or os.getenv("IMAP_PASSWORD") or "").strip()
 
 
     def _decodificar_texto(self, texto_bruto: str | bytes) -> str:
@@ -81,12 +81,16 @@ class LeitorEmailIMAP:
         self, termos_busca: List[str] | None = None
     ) -> List[Tuple[Path, str]]:
         """
-        Conecta ao IMAP, busca e-mails NÃO LIDOS (UNSEEN) contendo termos de busca no assunto,
+        Conecta ao IMAP, busca e-mails NÃO LIDOS (UNSEEN),
         baixa os anexos PDF para a pasta Downloads/ do gestor local e marca o e-mail como visto (\\Seen).
 
         Retorna uma lista de tuplas: [(caminho_pdf_baixado, email_remetente), ...]
         """
-        termos_busca = termos_busca or ["Assinatura", "Ficha", "Atendimento", "Documentos"]
+        termos_busca_padrao = [
+            "assinatura", "ficha", "atendimento", "documentos", "documento",
+            "cadastro", "portal", "re:", "resposta", "envio"
+        ]
+        termos = [t.lower() for t in (termos_busca or termos_busca_padrao)]
 
         if not self.email_remetente or not self.senha_app:
             logger.warning(
@@ -98,6 +102,8 @@ class LeitorEmailIMAP:
         resultados: List[Tuple[Path, str]] = []
 
         try:
+            import socket
+            socket.setdefaulttimeout(20.0)
             logger.info(f"[LEITOR EMAIL] Conectando ao servidor IMAP {self.host}:{self.port}...")
             mail = imaplib.IMAP4_SSL(self.host, self.port)
             mail.login(self.email_remetente, self.senha_app)
@@ -125,8 +131,12 @@ class LeitorEmailIMAP:
                 remetente_raw = self._decodificar_texto(msg.get("From", ""))
                 email_remetente = self._extrair_email_remetente(remetente_raw)
 
-                # Verifica se assunto contém algum dos termos de busca
-                contem_termo = any(termo.lower() in assunto.lower() for termo in termos_busca)
+                # Verifica se assunto contém algum dos termos de busca ou se o e-mail tem anexo PDF
+                contem_termo = any(termo in assunto.lower() for termo in termos)
+                if not contem_termo and not termos_busca:
+                    # Se termos não foram restritos pelo usuário, aceita qualquer email não lido com PDF
+                    contem_termo = True
+
                 if not contem_termo:
                     logger.debug(f"[LEITOR EMAIL] E-mail ignorado (assunto fora dos termos): {assunto}")
                     continue

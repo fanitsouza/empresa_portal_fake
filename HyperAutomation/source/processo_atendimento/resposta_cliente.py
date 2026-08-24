@@ -35,10 +35,10 @@ class RespostaClienteSMTP:
     """Dispara e-mails transacionais em HTML corporativo responsivo via SMTP."""
 
     def __init__(self) -> None:
-        self.host = os.getenv("SMTP_HOST", "smtp.gmail.com").strip()
-        self.port = int(os.getenv("SMTP_PORT", "465"))
-        self.email_remetente = (os.getenv("EMAIL_REMETENTE") or "").strip()
-        self.senha_app = (os.getenv("EMAIL_SENHA_APP") or os.getenv("EMAIL_SENHA") or "").strip()
+        self.host = (os.getenv("SMTP_HOST") or os.getenv("SMTP_SERVER") or "smtp.gmail.com").strip()
+        self.port = int(os.getenv("SMTP_PORT", "587"))
+        self.email_remetente = (os.getenv("EMAIL_REMETENTE") or os.getenv("SMTP_USER") or "").strip()
+        self.senha_app = (os.getenv("EMAIL_SENHA_APP") or os.getenv("EMAIL_SENHA") or os.getenv("SMTP_PASSWORD") or "").strip()
 
 
     def _gerar_html_sucesso(self, nome_cliente: str, protocolo: str) -> str:
@@ -184,9 +184,15 @@ class RespostaClienteSMTP:
 
         try:
             logger.info(f"[RESPOSTA CLIENTE] Conectando ao servidor SMTP {self.host}:{self.port}...")
-            with smtplib.SMTP_SSL(self.host, self.port) as server:
-                server.login(self.email_remetente, self.senha_app)
-                server.sendmail(self.email_remetente, email_destino, msg.as_string())
+            if self.port == 465:
+                with smtplib.SMTP_SSL(self.host, self.port, timeout=15.0) as server:
+                    server.login(self.email_remetente, self.senha_app)
+                    server.sendmail(self.email_remetente, email_destino, msg.as_string())
+            else:
+                with smtplib.SMTP(self.host, self.port, timeout=15.0) as server:
+                    server.starttls()
+                    server.login(self.email_remetente, self.senha_app)
+                    server.sendmail(self.email_remetente, email_destino, msg.as_string())
 
             logger.info(f"[RESPOSTA CLIENTE] E-mail transacional enviado com sucesso para {email_destino}.")
             return True
