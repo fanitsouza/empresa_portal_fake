@@ -1,6 +1,7 @@
 # Environment and Virtualenvs
 HyperAutomation/source/.env
 .env
+.venv
 .venv/
 venv/
 

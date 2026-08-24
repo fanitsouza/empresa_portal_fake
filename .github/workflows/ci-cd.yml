@@ -1,0 +1,89 @@
+name: CI/CD - HyperAutomation
+
+# Executa o workflow quando houver push ou Pull Request
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - feature/**
+      - feature/SAC
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  # ============================================================
+  # CI - INTEGRAÇÃO CONTÍNUA
+  # ============================================================
+  testes:
+    name: Testes e validações
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Baixa o código do repositório
+      - name: Baixar código do repositório
+        uses: actions/checkout@v4
+
+      # 2. Configura o Python
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # 3. Instala as dependências do projeto
+      - name: Instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          playwright install chromium --with-deps || true
+
+      # 4. Verifica erros de sintaxe nos arquivos Python
+      - name: Verificar sintaxe
+        run: |
+          python -m compileall .
+
+      # 5. Executa os testes automatizados
+      - name: Executar testes
+        run: |
+          python -m pytest -v
+
+  # ============================================================
+  # CD - ENTREGA CONTÍNUA / PUBLICAÇÃO NO GHCR
+  # ============================================================
+  publicar:
+    name: Build e Publicação no GHCR
+    needs: testes
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      # 1. Baixa o código
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      # 2. Faz login no GitHub Container Registry
+      - name: Login no GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 3. Define o nome da imagem Docker (lowercase)
+      - name: Definir nome da imagem
+        run: |
+          IMAGE_NAME=ghcr.io/${{ github.repository }}
+          echo "IMAGE_NAME=${IMAGE_NAME,,}" >> $GITHUB_ENV
+
+      # 4. Constrói a imagem Docker
+      - name: Construir imagem Docker
+        run: |
+          docker build -t ${{ env.IMAGE_NAME }}:latest .
+
+      # 5. Publica a imagem no GHCR
+      - name: Publicar imagem no GHCR
+        run: |
+          docker push ${{ env.IMAGE_NAME }}:latest
