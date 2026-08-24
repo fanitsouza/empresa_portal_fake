@@ -1,2 +1,22 @@
+# Environment and Virtualenvs
 HyperAutomation/source/.env
+.env
 .venv
+.venv/
+venv/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Execution Data and Browser Data
+HyperAutomation/resources/browser_data*
+resources/browser_data*
+HyperAutomation/resources/screenshots/
+resources/screenshots/
+downloads/
+evidencias/
+HyperAutomation/resources/ERP_Portal_Fake/
+
+

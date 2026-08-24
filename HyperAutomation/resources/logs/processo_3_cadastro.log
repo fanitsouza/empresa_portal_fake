@@ -1,0 +1,20 @@
+2026-08-17 16:47:14,689 | INFO | PROCESSO_3_CADASTRO | Inicio do Processo 3. Modo solicitado: auto.
+2026-08-17 16:47:14,696 | WARNING | PROCESSO_3_CADASTRO | API nao configurada; acionando fallback RPA.
+2026-08-17 16:47:14,696 | WARNING | PROCESSO_3_CADASTRO | Fallback RPA acionado para 2 cadastro(s).
+2026-08-17 16:47:15,749 | INFO | PROCESSO_3_CADASTRO | Cadastro RPA concluido para CPF ***.***.***-09.
+2026-08-17 16:47:15,872 | INFO | PROCESSO_3_CADASTRO | Cadastro RPA concluido para CPF ***.***.***-00.
+2026-08-17 16:47:16,742 | INFO | PROCESSO_3_CADASTRO | Evidencia final salva em C:\Users\Turma02\Documents\GitHub\empresa_portal_fake\HyperAutomation\resources\screenshots\cadastros_concluidos_2026-08-17_16-47-15.png.
+2026-08-17 16:47:16,743 | INFO | PROCESSO_3_CADASTRO | Processo finalizado: 2 sucesso(s), 0 falha(s), API=0, RPA=2.
+2026-08-18 10:14:32,486 | INFO | PROCESSO_3_CADASTRO | Cadastro RPA concluido para CPF ***.***.***-09.
+2026-08-18 10:14:32,741 | INFO | PROCESSO_3_CADASTRO | Cadastro RPA concluido para CPF ***.***.***-00.
+2026-08-18 10:14:32,945 | INFO | PROCESSO_3_CADASTRO | Cadastro RPA concluido para CPF ***.***.***-44.
+2026-08-18 10:14:43,478 | INFO | PROCESSO_3_CADASTRO | Cadastro RPA concluido para CPF ***.***.***-09.
+2026-08-18 10:14:43,643 | INFO | PROCESSO_3_CADASTRO | Cadastro RPA concluido para CPF ***.***.***-00.
+2026-08-18 10:14:43,854 | INFO | PROCESSO_3_CADASTRO | Cadastro RPA concluido para CPF ***.***.***-44.
+2026-08-18 10:32:18,766 | INFO | PROCESSO_3_CADASTRO | Cadastro RPA concluido para CPF ***.***.***-09.
+2026-08-18 10:32:19,194 | INFO | PROCESSO_3_CADASTRO | Cadastro RPA concluido para CPF ***.***.***-00.
+2026-08-18 10:32:22,655 | ERROR | PROCESSO_3_CADASTRO | Cadastro RPA falhou para CPF ***.***.***-21: Locator.wait_for: Timeout 3000ms exceeded.
+Call log:
+  - waiting for locator("#modal") to be hidden
+    9 × locator resolved to visible <div id="modal" class="modal" aria-hidden="false">…</div>
+
