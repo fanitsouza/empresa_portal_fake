@@ -11,3 +11,10 @@
 2026-08-18 10:14:43,478 | INFO | PROCESSO_3_CADASTRO | Cadastro RPA concluido para CPF ***.***.***-09.
 2026-08-18 10:14:43,643 | INFO | PROCESSO_3_CADASTRO | Cadastro RPA concluido para CPF ***.***.***-00.
 2026-08-18 10:14:43,854 | INFO | PROCESSO_3_CADASTRO | Cadastro RPA concluido para CPF ***.***.***-44.
+2026-08-18 10:32:18,766 | INFO | PROCESSO_3_CADASTRO | Cadastro RPA concluido para CPF ***.***.***-09.
+2026-08-18 10:32:19,194 | INFO | PROCESSO_3_CADASTRO | Cadastro RPA concluido para CPF ***.***.***-00.
+2026-08-18 10:32:22,655 | ERROR | PROCESSO_3_CADASTRO | Cadastro RPA falhou para CPF ***.***.***-21: Locator.wait_for: Timeout 3000ms exceeded.
+Call log:
+  - waiting for locator("#modal") to be hidden
+    9 × locator resolved to visible <div id="modal" class="modal" aria-hidden="false">…</div>
+
