@@ -17,14 +17,22 @@ def criar_documento(dados=None):
     documento.add_paragraph()
 
     if dados:
-        documento.add_paragraph(f"1. Nome: {dados.get('Nome', '')}")
-        documento.add_paragraph(f"2. Sobrenome: {dados.get('Sobrenome', '')}")
-        documento.add_paragraph(f"3. CPF: {dados.get('CPF', '')}")
-        documento.add_paragraph(f"4. E-mail: {dados.get('E-mail', '')}")
-        documento.add_paragraph(f"5. Telefone: {dados.get('Telefone', '')}")
-        documento.add_paragraph(f"6. Data de Nascimento: {dados.get('Nascimento', '')}")
-        documento.add_paragraph(f"7. Endereço: {dados.get('Endereco', '')}")
-        cpf_limpo = (dados.get('CPF') or 'temp').replace('.', '').replace('-', '')
+        nome = str(dados.get("Nome") or dados.get("nome") or "")
+        sobrenome = str(dados.get("Sobrenome") or dados.get("sobrenome") or "")
+        cpf = str(dados.get("CPF") or dados.get("cpf") or "")
+        email = str(dados.get("E-mail") or dados.get("email") or "")
+        telefone = str(dados.get("Telefone") or dados.get("telefone") or "")
+        nascimento = str(dados.get("Nascimento") or dados.get("nascimento") or "")
+        endereco = str(dados.get("Endereco") or dados.get("endereco") or "")
+
+        documento.add_paragraph(f"1. Nome: {nome}")
+        documento.add_paragraph(f"2. Sobrenome: {sobrenome}")
+        documento.add_paragraph(f"3. CPF: {cpf}")
+        documento.add_paragraph(f"4. E-mail: {email}")
+        documento.add_paragraph(f"5. Telefone: {telefone}")
+        documento.add_paragraph(f"6. Data de Nascimento: {nascimento}")
+        documento.add_paragraph(f"7. Endereço: {endereco}")
+        cpf_limpo = cpf.replace(".", "").replace("-", "").replace("/", "").strip() or "temp"
         nome_arquivo = f"Ficha_Cadastro_{cpf_limpo}.docx"
     else:
         documento.add_paragraph("1. Nome:")
@@ -55,8 +63,10 @@ def criar_documento(dados=None):
     return str(arquivo)
 
 def enviar_email(email_cliente, arquivo, apagar_apos_envio=True):
-    remetente = os.getenv("EMAIL_REMETENTE")
-    senha = os.getenv("EMAIL_SENHA")
+    remetente = (os.getenv("EMAIL_REMETENTE") or os.getenv("SMTP_USER") or "").strip()
+    senha = (os.getenv("EMAIL_SENHA_APP") or os.getenv("EMAIL_SENHA") or os.getenv("SMTP_PASSWORD") or "").strip()
+    host = (os.getenv("SMTP_HOST") or os.getenv("SMTP_SERVER") or "smtp.gmail.com").strip()
+    port = int(os.getenv("SMTP_PORT", "587"))
 
     if not remetente:
         raise Exception("EMAIL_REMETENTE não encontrado no arquivo .env")
@@ -90,10 +100,15 @@ def enviar_email(email_cliente, arquivo, apagar_apos_envio=True):
                 filename=Path(arquivo).name
             )
 
-        with smtplib.SMTP("smtp.gmail.com", 587) as servidor:
-            servidor.starttls()
-            servidor.login(remetente, senha)
-            servidor.send_message(mensagem)
+        if port == 465:
+            with smtplib.SMTP_SSL(host, port, timeout=15.0) as servidor:
+                servidor.login(remetente, senha)
+                servidor.send_message(mensagem)
+        else:
+            with smtplib.SMTP(host, port, timeout=15.0) as servidor:
+                servidor.starttls()
+                servidor.login(remetente, senha)
+                servidor.send_message(mensagem)
 
         print("E-mail enviado com sucesso!")
     finally:

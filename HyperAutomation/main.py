@@ -17,6 +17,13 @@ import argparse
 import sys
 from pathlib import Path
 
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 # Configuração dinâmica dos caminhos
 ROOT_DIR = Path(__file__).resolve().parent
 SOURCE_DIR = ROOT_DIR / "source"
@@ -26,7 +33,7 @@ if not SOURCE_DIR.exists():
 if str(SOURCE_DIR) not in sys.path:
     sys.path.insert(0, str(SOURCE_DIR))
 
-from processo_1_envio_fichas import executar_processo_1
+from processo_1_envio_fichas import executar_processo_1, listar_registros_csv
 from processo_2_validacao_docs import executar_processo_2
 from processo_3_extracao_planilha import executar_processo_3 as executar_processo_organizacao
 from processo_4_cadastro_portal import executar_processo_3 as executar_processo_cadastro, executar_processo_4
@@ -43,8 +50,8 @@ def menu_interativo() -> None:
     print("Escolha uma opção de execução:")
     print()
     print("  --- PROCESSOS ISOLADOS ---")
-    print("  [1] Processo 1: Atendimento - Gerar/Enviar Ficha e Validar Documentos")
-    print("  [2] Processo 2: Organização de Dados - Extrair PDFs e Atualizar Planilha Mestra")
+    print("  [1] Processo 1: Atendimento - Gerar e Enviar Ficha de Cadastro (DOCX por E-mail)")
+    print("  [2] Processo 2: Recepção, Validação Documental e Planilha Mestra (E-mails -> Excel)")
     print("  [3] Processo 3: Setor de Cadastro - Consultar CPF e Cadastrar no Portal Fake")
     print("  [4] Processo 4: Setor de SAC - E-mails de Sucesso/Erro e Planilha Status_SAC")
     print("  [5] Processo 5: Relatórios e Gerência - Indicadores, PDF Executivo e Drive")
@@ -65,10 +72,24 @@ def menu_interativo() -> None:
         return
 
     if escolha == "1":
-        executar_processo_1(modo="unico", row_index=0)
-        executar_processo_2(modo="real")
+        try:
+            registros = listar_registros_csv(limite=20)
+            print("\n📋 REGISTROS DISPONÍVEIS NO CSV:")
+            for idx, r in enumerate(registros):
+                nome_formatado = f"{r['Nome']} {r['Sobrenome']}"
+                print(f"  [{idx:02d}] ID: {r['id_solicitacao']:<2} | {nome_formatado:<20} | CPF: {r['CPF']:<12} | E-mail: {r['E-mail']}")
+            
+            entrada = input("\n👉 Escolha o registro do CSV para montar a ficha (Linha [0-19], ID, CPF, 'todos' ou Enter para padrão [0]): ").strip()
+            registro_escolhido = entrada if entrada else 0
+        except Exception:
+            registro_escolhido = 0
+
+        executar_processo_1(registro=registro_escolhido, modo="todos" if str(registro_escolhido).lower() == "todos" else "unico")
+
     elif escolha == "2":
-        executar_processo_organizacao(somente_local=True)
+        resp_modo = input("\n👉 Deseja buscar novos e-mails no Gmail (IMAP) [1] ou usar simulação local [2]? [Padrão: 1]: ").strip()
+        modo_proc2 = "simulacao" if resp_modo == "2" else "real"
+        executar_processo_2(modo=modo_proc2)
     elif escolha == "3":
         executar_processo_cadastro(headless=False)
     elif escolha == "4":
@@ -155,14 +176,14 @@ def executar_pipeline_atendimento_completo(modo: str = "real", headless: bool = 
     executar_processo_relatorios(enviar_email=enviar_email)
 
 
-def executar_pipeline_total(modo: str = "real", headless: bool = False, enviar_email: bool = True) -> None:
+def executar_pipeline_total(modo: str = "real", headless: bool = False, enviar_email: bool = True, registro: Any = 0) -> None:
     """Executa todo o fluxo de ponta a ponta (Envio ➔ Validação ➔ Planilha ➔ Cadastro ➔ SAC ➔ Relatório)."""
     print("\n" + "#" * 78)
     print("🌟 EXECUTANDO PIPELINE TOTAL DE PONTA A PONTA (1 ao 5)")
     print("#" * 78)
 
     # 1. Envio de Ficha
-    executar_processo_1(modo="unico", row_index=0)
+    executar_processo_1(registro=registro, modo="unico")
 
     # 2 a 5. Continuação completa
     executar_pipeline_atendimento_completo(modo=modo, headless=headless, enviar_email=enviar_email)
@@ -202,10 +223,27 @@ def main() -> None:
         help="Força exibição visual da janela do navegador.",
     )
     parser.add_argument(
+        "--registro",
+        default=None,
+        help="Identificador do registro do CSV para o Processo 1 (linha [0-19], ID de solicitação [1-20], CPF ou nome). Ex: 0, 2, 10000012482.",
+    )
+    parser.add_argument(
         "--row-index",
         type=int,
-        default=0,
-        help="Linha específica para o Processo 1 (padrão: 0).",
+        default=None,
+        help="Linha específica do CSV para o Processo 1 (0 a N).",
+    )
+    parser.add_argument(
+        "--cpf",
+        default=None,
+        help="CPF do cliente no CSV para o Processo 1.",
+    )
+    parser.add_argument(
+        "--id",
+        "--id-solicitacao",
+        dest="id_solicitacao",
+        default=None,
+        help="ID de solicitação do cliente no CSV para o Processo 1.",
     )
     parser.add_argument(
         "--quantidade",
@@ -238,13 +276,13 @@ def main() -> None:
 
     is_headless = args.headless and not args.no_headless
     enviar_email = not args.no_email
+    param_registro = args.cpf or args.id_solicitacao or (args.row_index if args.row_index is not None else args.registro) or 0
 
     # 1. Execuções Isoladas
-    if args.processo in ("1", "atendimento"):
-        executar_processo_1(modo="unico", row_index=args.row_index, headless=is_headless)
+    if args.processo in ("1", "atendimento", "envio"):
+        executar_processo_1(registro=param_registro, email_destino=args.email, headless=is_headless)
+    elif args.processo in ("2", "validacao", "organizacao", "documentos"):
         executar_processo_2(modo=args.modo)
-    elif args.processo in ("2", "organizacao"):
-        executar_processo_organizacao(somente_local=(args.modo == "simulacao"))
     elif args.processo in ("3", "cadastro"):
         executar_processo_cadastro(quantidade=args.quantidade, headless=is_headless)
     elif args.processo in ("4", "sac"):

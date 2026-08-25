@@ -1,66 +1,27 @@
 {
   "processo": "Processo 4 - SAC (Serviço de Atendimento ao Cliente)",
   "proximo_processo": "Processo 5 - Relatórios e Métricas de Performance",
-  "data_geracao": "24/08/2026 11:11:25",
+  "data_geracao": "24/08/2026 17:41:52",
   "resumo_metricas": {
-    "total_solicitacoes_sac": 4,
-    "cadastros_confirmados_com_sucesso": 4,
+    "total_solicitacoes_sac": 1,
+    "cadastros_confirmados_com_sucesso": 1,
     "cadastros_duplicados_notificados": 0,
     "cadastros_erros_notificados": 0,
     "taxa_sucesso_cadastros_pct": 100.0
   },
   "atendimentos_sac": [
     {
-      "protocolo": "#SAC-2026-7466",
-      "data_registro": "24/08/2026 11:11:25",
-      "nome_cliente": "João Pedro Almeida",
-      "cpf": "12345678909",
-      "email": "joao.almeida.teste@example.com",
-      "telefone": "(11) 98765-4321",
+      "protocolo": "#SAC-2026-7378",
+      "data_registro": "24/08/2026 17:41:46",
+      "nome_cliente": "Sannyer Nery",
+      "cpf": "035.360.542-50",
+      "email": "portalfakeifam@gmail.com",
+      "telefone": "(92) 99982-7524",
       "status_cadastro": "SUCESSO",
       "status_sac": "CONFIRMACAO_ENVIADA",
       "motivo_erro": "Cadastro realizado com sucesso",
-      "email_enviado": "Não enviado (Opção desativada)",
-      "atualizado_em": "24/08/2026 11:11:25"
-    },
-    {
-      "protocolo": "#SAC-2026-3585",
-      "data_registro": "24/08/2026 11:11:25",
-      "nome_cliente": "Mariana Costa Ribeiro",
-      "cpf": "98765432100",
-      "email": "mariana.ribeiro.teste@example.com",
-      "telefone": "(21) 99876-1234",
-      "status_cadastro": "SUCESSO",
-      "status_sac": "CONFIRMACAO_ENVIADA",
-      "motivo_erro": "Cadastro realizado com sucesso",
-      "email_enviado": "Não enviado (Opção desativada)",
-      "atualizado_em": "24/08/2026 11:11:25"
-    },
-    {
-      "protocolo": "#SAC-2026-2116",
-      "data_registro": "24/08/2026 11:11:25",
-      "nome_cliente": "Fani Batista",
-      "cpf": "02033414221",
-      "email": "fani.souza19@gmail.com",
-      "telefone": "(92) 99503-7524",
-      "status_cadastro": "SUCESSO",
-      "status_sac": "CONFIRMACAO_ENVIADA",
-      "motivo_erro": "Cadastro realizado com sucesso",
-      "email_enviado": "Não enviado (Opção desativada)",
-      "atualizado_em": "24/08/2026 11:11:25"
-    },
-    {
-      "protocolo": "#SAC-2026-5161",
-      "data_registro": "24/08/2026 11:11:25",
-      "nome_cliente": "Lucas Henrique Lima",
-      "cpf": "11144477735",
-      "email": "lucas.lima@exemplo.com",
-      "telefone": "(92) 99123-4567",
-      "status_cadastro": "SUCESSO",
-      "status_sac": "CONFIRMACAO_ENVIADA",
-      "motivo_erro": "Cadastro realizado com sucesso",
-      "email_enviado": "Não enviado (Opção desativada)",
-      "atualizado_em": "24/08/2026 11:11:25"
+      "email_enviado": "Enviado com sucesso",
+      "atualizado_em": "24/08/2026 17:41:52"
     }
   ]
 }

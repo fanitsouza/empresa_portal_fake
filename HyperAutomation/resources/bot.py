@@ -15,9 +15,10 @@ def carregar_usuarios(csv_path=CSV_PATH):
             usuarios.append(row)
     return usuarios
 
-def preencher_portal_rapido(page, usuarios, qtd=10):
+def preencher_portal_rapido(page, usuarios, qtd=None):
     """
     Preenche o Portal Fake de forma ultra-rápida utilizando o Playwright.
+    Se qtd for None ou 0, cadastra todos os registros do CSV.
     """
     # Trata diálogos nativos (como o confirm do #btnClearAll)
     page.on("dialog", lambda dialog: dialog.accept())
@@ -25,9 +26,9 @@ def preencher_portal_rapido(page, usuarios, qtd=10):
     # Zerar a base antes de preencher
     page.click("#btnClearAll")
 
-    lista = usuarios[:qtd] if qtd else usuarios
+    lista = usuarios[:qtd] if (qtd is not None and qtd > 0) else usuarios
     total = len(lista)
-    print(f"[RPA Preenchimento] Cadastrando {total} usuários no Portal Fake...")
+    print(f"[RPA Preenchimento] Cadastrando {total} usuários do CSV no Portal Fake...")
 
     for i, usuario in enumerate(lista, start=1):
         page.click("#btnNovo")

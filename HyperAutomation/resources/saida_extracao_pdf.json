@@ -1,1 +1,18 @@
-[]
+[
+    {
+        "arquivo": "C:\\Users\\user\\Documents\\empresa_portal_fake\\HyperAutomation\\resources\\Documentos_Aprovados\\Documentos_do_cliente_03536054250.pdf",
+        "sucesso": false,
+        "dados": {
+            "Nome": "Sannyer Nery",
+            "CPF": "035.360.542-50",
+            "E-mail": "",
+            "Telefone": "(92) 99982-7524",
+            "Nascimento": "29/07/2026",
+            "Endereco": "Rua Rio Purus, 915 - Bairro Taruma-Acu - Manaus/AM"
+        },
+        "campos_ausentes": [
+            "E-mail"
+        ],
+        "erro": "Campos obrigatorios nao encontrados: E-mail"
+    }
+]

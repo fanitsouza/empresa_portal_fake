@@ -95,10 +95,10 @@ class GeradorEmailSAC:
     """Gera templates HTML corporativos e gerencia o envio SMTP para o SAC."""
 
     def __init__(self) -> None:
-        self.host = os.getenv("SMTP_HOST", "smtp.gmail.com").strip()
-        self.port = int(os.getenv("SMTP_PORT", "465"))
-        self.email_remetente = (os.getenv("EMAIL_REMETENTE") or "").strip()
-        self.senha_app = (os.getenv("EMAIL_SENHA_APP") or os.getenv("EMAIL_SENHA") or "").strip()
+        self.host = (os.getenv("SMTP_HOST") or os.getenv("SMTP_SERVER") or "smtp.gmail.com").strip()
+        self.port = int(os.getenv("SMTP_PORT", "587"))
+        self.email_remetente = (os.getenv("EMAIL_REMETENTE") or os.getenv("SMTP_USER") or "").strip()
+        self.senha_app = (os.getenv("EMAIL_SENHA_APP") or os.getenv("EMAIL_SENHA") or os.getenv("SMTP_PASSWORD") or "").strip()
 
     def gerar_html_confirmacao_sucesso(
         self,
@@ -300,9 +300,15 @@ class GeradorEmailSAC:
         mensagem.attach(MIMEText(corpo_html, "html", "utf-8"))
 
         try:
-            with smtplib.SMTP_SSL(self.host, self.port, timeout=10.0) as server:
-                server.login(self.email_remetente, self.senha_app)
-                server.sendmail(self.email_remetente, destinatario, mensagem.as_string())
+            if self.port == 465:
+                with smtplib.SMTP_SSL(self.host, self.port, timeout=15.0) as server:
+                    server.login(self.email_remetente, self.senha_app)
+                    server.sendmail(self.email_remetente, destinatario, mensagem.as_string())
+            else:
+                with smtplib.SMTP(self.host, self.port, timeout=15.0) as server:
+                    server.starttls()
+                    server.login(self.email_remetente, self.senha_app)
+                    server.sendmail(self.email_remetente, destinatario, mensagem.as_string())
             LOGGER.info(f"[SAC E-MAIL] E-mail enviado com sucesso para: {destinatario}")
             return True, "Enviado com sucesso"
         except Exception as e:
