@@ -143,8 +143,8 @@ class LeitorEmailIMAP:
 
                 logger.info(f"[LEITOR EMAIL] Processando e-mail de {email_remetente} | Assunto: {assunto}")
 
-                # Extrai anexos PDF
-                anexos_baixados = 0
+                # Extrai anexos (PDF, DOCX, Imagens)
+                anexos_msg: List[Path] = []
                 for part in msg.walk():
                     if part.get_content_maintype() == "multipart":
                         continue
@@ -154,12 +154,15 @@ class LeitorEmailIMAP:
                     filename = part.get_filename()
                     if filename:
                         filename = self._decodificar_texto(filename)
-                        if filename.lower().endswith(".pdf"):
+                        if filename.lower().endswith((".pdf", ".docx", ".png", ".jpg", ".jpeg")):
                             caminho_temp = self.gestor.pasta_downloads / filename
                             caminho_temp.write_bytes(part.get_payload(decode=True))
-                            resultados.append((caminho_temp, email_remetente))
-                            anexos_baixados += 1
+                            anexos_msg.append(caminho_temp)
                             logger.info(f"[LEITOR EMAIL] Anexo baixado com sucesso: {filename}")
+
+                if anexos_msg:
+                    # Se tiver múltiplos anexos no mesmo e-mail, associa a lista ao remetente
+                    resultados.append((anexos_msg if len(anexos_msg) > 1 else anexos_msg[0], email_remetente))
 
                 # Aplica a flag \Seen imediatamente no e-mail lido para evitar duplicidades
                 mail.store(msg_id, "+FLAGS", "\\Seen")

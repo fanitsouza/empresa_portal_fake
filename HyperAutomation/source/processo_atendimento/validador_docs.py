@@ -1,4 +1,5 @@
 import logging
+import os
 from pathlib import Path
 import re
 from typing import Dict, List, Tuple
@@ -7,7 +8,6 @@ logger = logging.getLogger("VALIDAÇÃO")
 if not logger.handlers:
     logging.basicConfig(level=logging.INFO, format="[%(name)s] %(levelname)s: %(message)s")
 
-# Importa pypdf com tratamento gracioso de fallback caso pypdf não esteja instalado
 try:
     from pypdf import PdfReader
     HAS_PYPDF = True
@@ -19,16 +19,27 @@ except ImportError:
         HAS_PYPDF = False
         PdfReader = None  # type: ignore
 
+try:
+    import docx
+    HAS_DOCX = True
+except ImportError:
+    HAS_DOCX = False
+
 
 class ValidadorDocs:
-    """Inspeciona PDFs unificados e valida a presença dos 3 documentos obrigatórios."""
+    """Inspeciona documentos (PDFs, DOCX, Imagens) e valida a presença dos 3 documentos obrigatórios."""
 
     REGRAS_DOCUMENTOS = {
         "Ficha Cadastral Assinada": [
             "ficha de cadastro",
             "ficha cadastral",
+            "ficha",
+            "cadastro",
             "assinatura",
             "protocolo de atendimento",
+            "portal fake",
+            "prezado",
+            "solicitamos",
         ],
         "Documento Oficial com Foto": [
             "carteira de identidade",
@@ -36,12 +47,19 @@ class ValidadorDocs:
             "rg ",
             "rg:",
             "rg-",
+            "rg_",
             "cnh",
             "carteira nacional",
             "documento de identificação",
             "documento de identificacao",
             "passaporte",
             "carteira identidade",
+            "documento oficial",
+            "foto",
+            "documento com foto",
+            "registro geral",
+            "ssp",
+            "cpf",
         ],
         "Comprovante de Residência": [
             "comprovante",
@@ -58,37 +76,76 @@ class ValidadorDocs:
             "sabesp",
             "coelba",
             "light",
+            "enel",
+            "cemig",
+            "copel",
+            "cpfl",
+            "endereço",
+            "endereco",
+            "rua",
+            "avenida",
+            "bairro",
+            "cep",
+            "comprovante de endereço",
+            "comprovante de endereco",
+            "comprovante de residência",
+            "comprovante de residencia",
         ],
     }
 
-
-    def _extrair_texto_pdf(self, caminho_pdf: Path) -> str:
-        """Extrai o texto bruto de todas as páginas do PDF."""
-        if not caminho_pdf.exists() or not caminho_pdf.is_file():
-            logger.error(f"[VALIDAÇÃO] Arquivo PDF não encontrado: {caminho_pdf}")
+    def _extrair_texto_arquivo(self, caminho: Path) -> str:
+        """Extrai o texto bruto de PDF, DOCX ou arquivos textuais."""
+        if not caminho.exists() or not caminho.is_file():
+            logger.error(f"[VALIDAÇÃO] Arquivo não encontrado: {caminho}")
             return ""
 
-        texto_completo = []
+        ext = caminho.suffix.lower()
+        texto_partes: List[str] = [f"nome_arquivo: {caminho.name}"]
 
-        if HAS_PYPDF and PdfReader is not None:
+        # 1. Leitura de DOCX
+        if ext == ".docx" and HAS_DOCX:
             try:
-                reader = PdfReader(str(caminho_pdf))
-                for idx, page in enumerate(reader.pages):
-                    texto_pagina = page.extract_text() or ""
-                    texto_completo.append(texto_pagina)
-                return "\n".join(texto_completo)
+                doc = docx.Document(str(caminho))
+                for p in doc.paragraphs:
+                    if p.text:
+                        texto_partes.append(p.text)
+                for tab in doc.tables:
+                    for row in tab.rows:
+                        for cell in row.cells:
+                            if cell.text:
+                                texto_partes.append(cell.text)
+                return "\n".join(texto_partes)
+            except Exception as erro:
+                logger.warning(f"[VALIDAÇÃO] Erro ao ler DOCX ({erro}). Usando nome do arquivo.")
+
+        # 2. Leitura de PDF
+        if ext == ".pdf" and HAS_PYPDF and PdfReader is not None:
+            try:
+                reader = PdfReader(str(caminho))
+                for page in reader.pages:
+                    txt = page.extract_text() or ""
+                    if txt:
+                        texto_partes.append(txt)
+                return "\n".join(texto_partes)
             except Exception as erro:
                 logger.warning(f"[VALIDAÇÃO] Erro ao ler PDF com pypdf ({erro}). Usando leitor textual de fallback.")
 
-        # Fallback para arquivos de texto/simulação se pypdf não estiver disponível ou falhar
+        # 3. Fallback de texto puro
         try:
-            return caminho_pdf.read_text(encoding="utf-8", errors="ignore")
+            conteudo = caminho.read_text(encoding="utf-8", errors="ignore")
+            if conteudo:
+                texto_partes.append(conteudo)
+                return "\n".join(texto_partes)
         except Exception:
-            # Se for binário e sem pypdf, tenta inferir pelo nome do arquivo
-            return caminho_pdf.name
+            pass
 
-    def _extrair_dados_cliente(self, texto: str, caminho_pdf: Path) -> Dict[str, str]:
-        """Extrai Nome, CPF e E-mail a partir do texto do PDF usando Regex ou padrões."""
+        return "\n".join(texto_partes)
+
+    def _extrair_texto_pdf(self, caminho_pdf: Path) -> str:
+        return self._extrair_texto_arquivo(caminho_pdf)
+
+    def _extrair_dados_cliente(self, texto: str, caminho_arquivo: Path) -> Dict[str, str]:
+        """Extrai Nome, CPF e E-mail a partir do texto ou padrões."""
         # Extração de CPF (11 dígitos formatados ou sequenciais)
         cpf_match = re.search(r"\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b", texto)
         cpf = re.sub(r"\D", "", cpf_match.group(0)) if cpf_match else "12345678900"
@@ -98,15 +155,15 @@ class ValidadorDocs:
         email = email_match.group(0) if email_match else "cliente@example.com"
 
         # Extração de Nome e Sobrenome
-        nome_match = re.search(r"(?:Nome Completo|Nome do Cliente|Nome)[\s:]+([A-ZÁÉÍÓÚÂÊÔÃÕÇa-záéíóúâêôãõç ]+)", texto)
-        sobrenome_match = re.search(r"(?:Sobrenome|Último Nome|Ultimo Nome|Segundo Nome)[\s:]+([A-ZÁÉÍÓÚÂÊÔÃÕÇa-záéíóúâêôãõç ]+)", texto)
+        nome_match = re.search(r"(?:Nome Completo|Nome do Cliente|1\.\s*Nome|Nome)[\s:]+([A-ZÁÉÍÓÚÂÊÔÃÕÇa-záéíóúâêôãõç ]+)", texto)
+        sobrenome_match = re.search(r"(?:2\.\s*Sobrenome|Sobrenome|Último Nome|Ultimo Nome|Segundo Nome)[\s:]+([A-ZÁÉÍÓÚÂÊÔÃÕÇa-záéíóúâêôãõç ]+)", texto)
 
         if nome_match:
             nome_bruto = nome_match.group(1).strip().split("\n")[0].strip()
             nome_partes = [p for p in nome_bruto.split() if len(p) > 1]
             nome = " ".join(nome_partes) if nome_partes else "Cliente Demonstração"
         else:
-            stem_limpo = re.sub(r"[^\w\s]", " ", caminho_pdf.stem).strip()
+            stem_limpo = re.sub(r"[^\w\s]", " ", caminho_arquivo.stem).strip()
             nome = stem_limpo.title() if len(stem_limpo) > 3 else "Cliente Demonstração"
 
         if sobrenome_match:
@@ -128,36 +185,24 @@ class ValidadorDocs:
             "email": email,
         }
 
-    def validar_documentos_pdf(
-        self, caminho_pdf: Path
+    def validar_documentos_arquivos(
+        self, lista_arquivos: List[Path]
     ) -> Tuple[bool, List[str], Dict[str, str]]:
         """
-        Valida a presença dos 3 documentos obrigatórios no PDF.
-
-        Retorna:
-        - (True, [], dados_cliente) se todos os 3 documentos estiverem presentes.
-        - (False, pendencias, dados_cliente) se faltar algum documento.
+        Valida a presença dos 3 documentos obrigatórios no conjunto de arquivos de um cliente.
         """
-        logger.info(f"[VALIDAÇÃO] Iniciando inspeção documental em: {caminho_pdf.name}")
+        textos: List[str] = []
+        for arq in lista_arquivos:
+            textos.append(self._extrair_texto_arquivo(arq))
 
-        texto_pdf = self._extrair_texto_pdf(caminho_pdf).lower()
-        dados_cliente = self._extrair_dados_cliente(texto_pdf, caminho_pdf)
+        texto_consolidado = "\n".join(textos).lower()
+        primeiro_arquivo = lista_arquivos[0] if lista_arquivos else Path("documento.pdf")
+        dados_cliente = self._extrair_dados_cliente(texto_consolidado, primeiro_arquivo)
 
         pendencias: List[str] = []
 
         for doc_nome, palavras_chave in self.REGRAS_DOCUMENTOS.items():
-            encontrado = False
-
-            if doc_nome == "Documento Oficial com Foto":
-                # Exige pelo menos uma das palavras da foto (rg, cpf, identidade, etc)
-                encontrado = any(palavra in texto_pdf for palavra in palavras_chave)
-            elif doc_nome == "Ficha Cadastral Assinada":
-                # Exige pelo menos uma palavra chave de ficha cadastral
-                encontrado = any(palavra in texto_pdf for palavra in palavras_chave)
-            elif doc_nome == "Comprovante de Residência":
-                # Exige pelo menos uma palavra de comprovante de residência
-                encontrado = any(palavra in texto_pdf for palavra in palavras_chave)
-
+            encontrado = any(palavra in texto_consolidado for palavra in palavras_chave)
             if not encontrado:
                 logger.warning(f"[VALIDAÇÃO] Documento ausente: {doc_nome}")
                 pendencias.append(doc_nome)
@@ -172,3 +217,9 @@ class ValidadorDocs:
             logger.warning(f"[VALIDAÇÃO] RESULTADO: PENDENTE. Faltam {len(pendencias)} documento(s): {', '.join(pendencias)}")
 
         return aprovado, pendencias, dados_cliente
+
+    def validar_documentos_pdf(
+        self, caminho_pdf: Path
+    ) -> Tuple[bool, List[str], Dict[str, str]]:
+        """Valida a presença dos 3 documentos obrigatórios em um arquivo individual."""
+        return self.validar_documentos_arquivos([caminho_pdf])

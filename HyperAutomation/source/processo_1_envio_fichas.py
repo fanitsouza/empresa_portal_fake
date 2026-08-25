@@ -201,7 +201,7 @@ def executar_processo_1(
         print(f"  ✉️ Disparando e-mail para: {destinatario}")
 
         try:
-            enviar_email(destinatario, arquivo_docx, apagar_apos_envio=False)
+            enviar_email(destinatario, arquivo_docx, apagar_apos_envio=True)
             enviados.append(
                 {
                     "cliente": cliente,
@@ -213,6 +213,12 @@ def executar_processo_1(
             print(f"  ✅ Ficha enviada com sucesso para {destinatario}!")
         except Exception as e:
             LOGGER.error(f"Falha ao enviar e-mail para {destinatario}: {e}")
+            if os.path.exists(arquivo_docx):
+                try:
+                    os.remove(arquivo_docx)
+                    print(f"  🗑️ Arquivo temporário '{Path(arquivo_docx).name}' removido após falha.")
+                except Exception:
+                    pass
             enviados.append(
                 {
                     "cliente": cliente,
@@ -224,7 +230,9 @@ def executar_processo_1(
             )
 
     print("\n" + "=" * 70)
-    print(f"✅ [PROCESSO 1] CONCLUÍDO COM SUCESSO! ({len(enviados)} ficha(s) processada(s))")
+    print(f"✅ [PROCESSO 1] CONCLUÍDO COM SUCESSO! ({len(enviados)} ficha(s) enviada(s))")
+    print("⏳ Status: Aguardando o cliente assinar e retornar a documentação.")
+    print("👉 Quando o cliente enviar os documentos (Ficha + Foto + Residência), execute o Processo 2.")
     print("=" * 70 + "\n")
 
     return enviados

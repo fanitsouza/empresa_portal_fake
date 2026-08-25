@@ -121,15 +121,19 @@ def executar_processo_2(
     pendentes: List[Path] = []
     dados_clientes: List[Dict[str, Any]] = []
 
-    for i, (caminho_pdf, email_remetente) in enumerate(itens_processar, start=1):
-        if not caminho_pdf.exists():
+    for i, (item_arquivos, email_remetente) in enumerate(itens_processar, start=1):
+        lista_arqs = item_arquivos if isinstance(item_arquivos, list) else [item_arquivos]
+        lista_arqs = [a for a in lista_arqs if a.exists()]
+        if not lista_arqs:
             continue
 
         protocolo = gerar_protocolo()
+        nomes_arqs = ", ".join(a.name for a in lista_arqs)
         print(f"\n------------------------------------------------------------")
-        print(f"📄 ({i}/{len(itens_processar)}) Analisando: {caminho_pdf.name} | Protocolo: {protocolo}")
+        print(f"📄 ({i}/{len(itens_processar)}) Analisando solicitação ({len(lista_arqs)} arquivo(s)): {nomes_arqs}")
+        print(f"   Protocolo: {protocolo} | Remetente: {email_remetente}")
 
-        is_aprovado, lista_pendencias, dados_cliente = validador.validar_documentos_pdf(caminho_pdf)
+        is_aprovado, lista_pendencias, dados_cliente = validador.validar_documentos_arquivos(lista_arqs)
         dados_cliente["protocolo"] = protocolo
         if email_remetente and email_remetente != "cliente@example.com":
             dados_cliente["email"] = email_remetente
@@ -139,14 +143,14 @@ def executar_processo_2(
         if is_aprovado:
             print(f"  ✅ STATUS: APROVADO (Todos os documentos obrigatórios presentes)")
 
-            # Move para Documentos_OK
-            pdf_ok = gestor.mover_para_documentos_ok(caminho_pdf)
+            # Move os arquivos para Documentos_OK e copia PDFs para Documentos_Aprovados
+            for arq in lista_arqs:
+                arq_ok = gestor.mover_para_documentos_ok(arq)
+                if arq_ok.suffix.lower() == ".pdf":
+                    destino_aprovados = DOCS_APROVADOS_DIR / arq_ok.name
+                    shutil.copy2(str(arq_ok), str(destino_aprovados))
+                    aprovados.append(destino_aprovados)
 
-            # Também disponibiliza na pasta Documentos_Aprovados para o Processo 3
-            destino_aprovados = DOCS_APROVADOS_DIR / pdf_ok.name
-            shutil.copy2(str(pdf_ok), str(destino_aprovados))
-
-            aprovados.append(destino_aprovados)
             dados_clientes.append(dados_cliente)
 
             if notificar_cliente:
@@ -165,8 +169,9 @@ def executar_processo_2(
             print(f"  ⚠️ STATUS: PENDENTE (Faltam: {', '.join(lista_pendencias)})")
 
             # Move para Documentos_Pendentes
-            pdf_pend = gestor.mover_para_documentos_pendentes(caminho_pdf)
-            pendentes.append(pdf_pend)
+            for arq in lista_arqs:
+                arq_pend = gestor.mover_para_documentos_pendentes(arq)
+                pendentes.append(arq_pend)
 
             if notificar_cliente:
                 print(f"  ✉️ Enviando notificação de pendência para: {destinatario}")
@@ -183,10 +188,19 @@ def executar_processo_2(
 
     print("\n" + "=" * 70)
     print("📊 [PROCESSO 2] RESUMO DA VALIDAÇÃO:")
-    print(f"  • Total analisados: {len(itens_processar)}")
-    print(f"  • Documentos Aprovados: {len(aprovados)}")
-    print(f"  • Documentos com Pendências: {len(pendentes)}")
+    print(f"  • Total de Solicitações Analisadas: {len(itens_processar)}")
+    print(f"  • Solicitações Aprovadas: {len(dados_clientes)}")
+    print(f"  • Arquivos com Pendências: {len(pendentes)}")
     print("=" * 70 + "\n")
+
+    # Se houver aprovados, extrai automaticamente para a Planilha Mestra (Processo 2 - Organização)
+    if aprovados:
+        try:
+            from processo_3_extracao_planilha import executar_processo_3 as extrair_para_planilha_mestra
+            print("🔗 [PROCESSO 2] Extraindo dados dos documentos aprovados para a Planilha Mestra...")
+            extrair_para_planilha_mestra(lista_pdfs=aprovados)
+        except Exception as erro_extracao:
+            LOGGER.error(f"Erro ao extrair dados para planilha mestra: {erro_extracao}")
 
     return {
         "aprovados": aprovados,
